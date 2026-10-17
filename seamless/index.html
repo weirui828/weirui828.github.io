@@ -1,0 +1,1380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0e0e10" />
+  <title>Seamless · Weiniverse</title>
+  <meta name="description" content="Cut photos to fit Instagram: swipeable panorama carousels, 4:5 frames with a blurred border, crops and slow-pan Reels. Runs in your browser; photos never leave your device." />
+
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Neutral greys so the UI doesn't tint how the photo looks */
+    :root {
+      --bg: #0e0e10;
+      --panel: #151518;
+      --raise: #1f1f24;
+      --raise-hover: #28282e;
+      --line: rgba(255, 255, 255, .09);
+      --text: #ececf1;
+      --muted: #a3a3ad;
+      --faint: #76767f;
+      --accent: #a78bfa;
+      --accent-ink: #120d1f;
+      --warn: #fbbf24;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      font: 15px/1.5 "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, select, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 56px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 1.25rem; letter-spacing: -.01em; }
+    .brand a { text-decoration: none; }
+    .by { color: var(--faint); font-size: .8125rem; text-decoration: none; }
+    .by:hover { color: var(--muted); }
+    .top .spacer { flex: 1; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--raise);
+      font-size: .875rem;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--raise-hover); }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); font-weight: 600; }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn.wide { width: 100%; padding: 11px 14px; }
+
+    /* Empty state */
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: calc(100vh - 56px);
+      padding: 32px 16px;
+    }
+    .drop {
+      width: min(560px, 100%);
+      padding: 36px 32px;
+      border: 1.5px dashed rgba(255, 255, 255, .18);
+      border-radius: 16px;
+      text-align: center;
+      transition: border-color .15s, background .15s;
+    }
+    body.dragging .drop { border-color: var(--accent); background: rgba(167, 139, 250, .06); }
+    .drop h1 { margin: 0 0 4px; font-family: "Space Grotesk", sans-serif; font-size: 2rem; letter-spacing: -.02em; }
+    .drop .lede { margin: 0 0 22px; color: var(--muted); }
+    .drop .or { display: block; margin-top: 10px; color: var(--faint); font-size: .8125rem; }
+    .modes { margin: 28px 0 0; padding: 0; list-style: none; text-align: left; display: grid; gap: 10px; }
+    .modes li { color: var(--muted); font-size: .875rem; }
+    .modes b { color: var(--text); font-weight: 600; }
+    .private { margin: 24px 0 0; font-size: .8125rem; color: var(--faint); }
+
+    /* Workspace */
+    .app {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      height: calc(100vh - 56px);
+    }
+    .stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 24px;
+    }
+    .stage-inner { width: 100%; display: flex; justify-content: center; }
+    #view { display: block; touch-action: none; cursor: grab; background: #000; }
+    #view.dragging { cursor: grabbing; }
+    #view.locked { cursor: default; }
+    .info { margin: 0; color: var(--muted); font-size: .8125rem; text-align: center; }
+    .hint { margin: 0; color: var(--faint); font-size: .75rem; text-align: center; }
+
+    .player { display: flex; align-items: center; gap: 10px; width: min(420px, 100%); }
+    .player .time { font-variant-numeric: tabular-nums; font-size: .8125rem; color: var(--muted); min-width: 72px; text-align: right; }
+
+    .panel {
+      overflow-y: auto;
+      padding: 16px 18px 32px;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      padding: 4px;
+      border-radius: var(--radius);
+      background: var(--raise);
+    }
+    .tabs button {
+      padding: 7px 0;
+      border: 0;
+      border-radius: 7px;
+      background: none;
+      color: var(--muted);
+      font-size: .8125rem;
+      font-weight: 600;
+    }
+    .tabs button:hover { color: var(--text); }
+    .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+    .tab-lede { margin: 10px 2px 0; color: var(--muted); font-size: .8125rem; }
+
+    .group { margin-top: 22px; }
+    .group h3 {
+      margin: 0 0 8px;
+      color: var(--faint);
+      font-size: .6875rem;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .seg { display: flex; gap: 4px; }
+    .seg button {
+      flex: 1;
+      padding: 7px 0;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--raise);
+      font-size: .8125rem;
+      font-weight: 500;
+    }
+    .seg button:hover { background: var(--raise-hover); }
+    .seg button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: rgba(167, 139, 250, .1); }
+
+    .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
+    .chip {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 0 5px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--raise);
+      line-height: 1.2;
+    }
+    .chip:hover { background: var(--raise-hover); }
+    .chip b { font-size: .9375rem; font-weight: 600; }
+    .chip span { margin-top: 2px; color: var(--muted); font-size: .6875rem; }
+    .chip[aria-pressed="true"] { border-color: var(--accent); background: rgba(167, 139, 250, .1); }
+    .chip[aria-pressed="true"] b { color: var(--accent); }
+    .chip.best::after {
+      content: "";
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .row { display: flex; align-items: center; gap: 10px; }
+    .row + .row { margin-top: 10px; }
+    .row label { min-width: 64px; color: var(--muted); font-size: .8125rem; }
+    .row output { min-width: 46px; color: var(--muted); font-size: .8125rem; font-variant-numeric: tabular-nums; text-align: right; }
+    input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+    input[type="color"] { width: 34px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 7px; background: none; }
+    select {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--raise);
+      font-size: .8125rem;
+    }
+    .check { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .8125rem; }
+    .check input { accent-color: var(--accent); }
+    .btns { display: flex; gap: 6px; margin-top: 10px; }
+    .btns .btn { flex: 1; padding: 6px 8px; font-size: .8125rem; }
+
+    .note { margin: 8px 2px 0; color: var(--muted); font-size: .75rem; }
+    .note.warn { color: var(--warn); }
+
+    .results { margin-top: 14px; }
+    .results.stale .strip, .results.stale video { opacity: .45; }
+    .strip {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      border-radius: 6px;
+      background: #000;
+    }
+    .strip a { flex: 0 0 auto; scroll-snap-align: start; }
+    .strip img { display: block; height: 150px; }
+    .results video { display: block; width: 100%; max-height: 360px; border-radius: 6px; background: #000; }
+    .results .meta { margin: 8px 0 0; color: var(--muted); font-size: .75rem; }
+    .results .btns { flex-wrap: wrap; }
+
+    @media (max-width: 860px) {
+      .app { display: block; height: auto; }
+      .stage { padding: 12px 16px; }
+      .panel { border-left: 0; border-top: 1px solid var(--line); padding: 16px 16px 40px; }
+      .top { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <span class="brand"><a href="./">Seamless</a></span>
+    <a class="by" href="../">by Weiniverse</a>
+    <span class="spacer"></span>
+    <button class="btn" id="change" hidden>Change photo</button>
+  </header>
+
+  <input type="file" id="file" accept="image/*" hidden />
+
+  <main>
+    <section class="empty" id="empty">
+      <div class="drop">
+        <h1>Seamless</h1>
+        <p class="lede">Cut your photos to fit Instagram.</p>
+        <button class="btn primary" id="choose">Choose a photo</button>
+        <span class="or">or drop one anywhere on this page</span>
+        <ul class="modes">
+          <li><b>Carousel</b> splits a wide photo into slides that line up as people swipe.</li>
+          <li><b>Fit</b> puts the whole photo on a tall frame, with a blurred or plain border.</li>
+          <li><b>Crop</b> frames a tall 4:5 or 3:4 version of the photo.</li>
+          <li><b>Reel</b> turns the photo into a slow pan video for Reels.</li>
+        </ul>
+        <p class="private">Your photos stay on your device. Nothing is uploaded.</p>
+      </div>
+    </section>
+
+    <section class="app" id="app" hidden>
+      <div class="stage" id="stage">
+        <div class="stage-inner"><canvas id="view"></canvas></div>
+        <p class="info" id="info"></p>
+        <p class="hint" id="hint">Drag to move the photo. Scroll or pinch to zoom. Double-click to reset.</p>
+        <div class="player" id="player" hidden>
+          <button class="btn" id="play">Play</button>
+          <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Playback position" />
+          <span class="time" id="time">0.0 / 8.0 s</span>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="tabs" role="tablist">
+          <button role="tab" data-mode="carousel" aria-selected="true">Carousel</button>
+          <button role="tab" data-mode="fit" aria-selected="false">Fit</button>
+          <button role="tab" data-mode="crop" aria-selected="false">Crop</button>
+          <button role="tab" data-mode="reel" aria-selected="false">Reel</button>
+        </div>
+        <p class="tab-lede" id="tabLede"></p>
+
+        <div class="group" data-for="carousel">
+          <h3>Slides</h3>
+          <div class="chips" id="chips"></div>
+          <p class="note" id="chipsNote"></p>
+        </div>
+
+        <div class="group" data-for="carousel fit crop">
+          <h3 id="shapeTitle">Slide shape</h3>
+          <div class="seg" id="shapes">
+            <button data-shape="auto">Auto</button>
+            <button data-shape="4:5">4:5</button>
+            <button data-shape="3:4">3:4</button>
+            <button data-shape="1:1">1:1</button>
+          </div>
+          <p class="note" id="shapeNote"></p>
+        </div>
+
+        <div class="group" data-for="carousel fit crop">
+          <h3>Position</h3>
+          <div class="row">
+            <label for="zoom">Zoom</label>
+            <input type="range" id="zoom" min="0" max="1000" value="500" />
+            <output id="zoomVal">100%</output>
+          </div>
+          <div class="btns">
+            <button class="btn" id="fitWhole">Whole photo</button>
+            <button class="btn" id="fillFrame">Fill frame</button>
+            <button class="btn" id="center">Center</button>
+          </div>
+        </div>
+
+        <div class="group" data-for="carousel fit crop">
+          <h3>Empty space</h3>
+          <div class="seg" id="fills">
+            <button data-fill="blur">Blur</button>
+            <button data-fill="black">Black</button>
+            <button data-fill="white">White</button>
+            <button data-fill="color">Color</button>
+          </div>
+          <div class="row" id="dimRow" style="margin-top:10px">
+            <label for="dim">Darken</label>
+            <input type="range" id="dim" min="0" max="70" value="20" />
+            <output id="dimVal">20%</output>
+          </div>
+          <div class="row" id="colorRow" style="margin-top:10px" hidden>
+            <label for="color">Color</label>
+            <input type="color" id="color" value="#1a1a1a" />
+          </div>
+          <p class="note">Shows only where the photo doesn't cover the frame.</p>
+        </div>
+
+        <div class="group" data-for="carousel fit crop">
+          <h3>Guides</h3>
+          <label class="check"><input type="checkbox" id="thirds" /> Rule-of-thirds lines</label>
+        </div>
+
+        <div class="group" data-for="reel">
+          <h3>Pan</h3>
+          <div class="row">
+            <label for="p0">Start</label>
+            <input type="range" id="p0" min="0" max="100" value="0" />
+            <output id="p0Val">0%</output>
+          </div>
+          <div class="row">
+            <label for="p1">End</label>
+            <input type="range" id="p1" min="0" max="100" value="100" />
+            <output id="p1Val">100%</output>
+          </div>
+          <div class="row">
+            <label for="vpos">Up/down</label>
+            <input type="range" id="vpos" min="0" max="100" value="50" />
+            <output id="vposVal">50%</output>
+          </div>
+          <p class="note">0% shows the left edge of the photo, 100% the right edge.</p>
+        </div>
+
+        <div class="group" data-for="reel">
+          <h3>Zoom</h3>
+          <div class="row">
+            <label for="z0">Start</label>
+            <input type="range" id="z0" min="100" max="160" value="100" />
+            <output id="z0Val">100%</output>
+          </div>
+          <div class="row">
+            <label for="z1">End</label>
+            <input type="range" id="z1" min="100" max="160" value="106" />
+            <output id="z1Val">106%</output>
+          </div>
+        </div>
+
+        <div class="group" data-for="reel">
+          <h3>Timing</h3>
+          <div class="row">
+            <label for="dur">Length</label>
+            <input type="range" id="dur" min="3" max="30" value="8" />
+            <output id="durVal">8 s</output>
+          </div>
+          <label class="check" style="margin-top:10px"><input type="checkbox" id="ease" checked /> Ease in and out</label>
+        </div>
+
+        <div class="group">
+          <h3>Export</h3>
+          <div class="row" data-for="carousel fit crop">
+            <label for="outW">Width</label>
+            <select id="outW">
+              <option value="1080">1080 px (Instagram's size)</option>
+              <option value="1440">1440 px</option>
+              <option value="2160">2160 px</option>
+            </select>
+          </div>
+          <p class="note" data-for="reel">1080 × 1920 MP4, 30 fps, no sound. Add music in Instagram.</p>
+          <button class="btn primary wide" id="export" style="margin-top:12px">Export</button>
+          <div class="results" id="results" hidden></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module">
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => [...document.querySelectorAll(s)];
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    // Instagram keeps any feed ratio from 1.91:1 (wide) to 3:4 (tall, app uploads);
+    // 4:5 is the tallest that scheduling tools accept
+    const MIN_A = 3 / 4;
+    const SAFE_A = 4 / 5;
+    const MAX_A = 1.91;
+    const SHAPES = { "4:5": 4 / 5, "3:4": 3 / 4, "1:1": 1 };
+    const MAX_PIXELS = 24e6;   // keeps phones within their canvas memory limits
+    const JPEG_QUALITY = 0.95;
+    const REEL = { w: 1080, h: 1920, fps: 30 };
+
+    const LEDES = {
+      carousel: "Split a wide photo into slides. People swipe through them and see one continuous picture.",
+      fit: "Put the whole photo on a tall frame, so it takes more of the screen in the feed.",
+      crop: "Frame a tall version of the photo. Keep the full photo for your website.",
+      reel: "A slow pan across the photo as a 9:16 video. Add trending audio in Instagram.",
+    };
+
+    const S = {
+      img: null, W: 0, H: 0, origW: 0, origH: 0, base: "photo",
+      mode: "carousel",
+      modes: {
+        carousel: { n: 3, shape: "auto", zoom: 1, ox: 0, oy: 0 },
+        fit: { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 },
+        crop: { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 },
+      },
+      fill: "blur", color: "#1a1a1a", dim: 0.2, outW: 1080, thirds: false,
+      reel: { dur: 8, p0: 0, p1: 1, z0: 1, z1: 1.06, v: 0.5, ease: true, t: 0, playing: false },
+    };
+    let pyramid = [];        // the photo at 1, 1/2, 1/4… scale, for clean downscaling
+    let blurCache = new Map();
+    let resultUrls = [];
+
+    const view = $("#view");
+    const vctx = view.getContext("2d");
+
+    // ---------- Geometry ----------
+
+    const cur = () => S.modes[S.mode];
+
+    function panelAspect(m) {
+      if (m.shape === "auto") return clamp(S.W / (S.H * m.n), MIN_A, MAX_A);
+      return SHAPES[m.shape];
+    }
+
+    // Frame units are output pixels: n panels, each pw × ph
+    function frame(m) {
+      const a = panelAspect(m);
+      const pw = S.outW;
+      const ph = Math.round(pw / a);
+      return { a, pw, ph, n: m.n, fw: pw * m.n, fh: ph };
+    }
+
+    const coverK = (f) => Math.max(f.fw / S.W, f.fh / S.H);
+    const containK = (f) => Math.min(f.fw / S.W, f.fh / S.H);
+    const zoomRange = (f) => [0.5 * containK(f) / coverK(f), 5];
+
+    function place(m, f) {
+      const k = coverK(f) * m.zoom;
+      const dw = S.W * k, dh = S.H * k;
+      const cx = f.fw / 2 + m.ox * f.fw, cy = f.fh / 2 + m.oy * f.fh;
+      return { k, dw, dh, x: cx - dw / 2, y: cy - dh / 2 };
+    }
+
+    // A photo larger than the frame can't leave a gap; a smaller one stays inside the frame
+    function clampPos(m, f) {
+      const [zmin, zmax] = zoomRange(f);
+      m.zoom = clamp(m.zoom, zmin, zmax);
+      const { dw, dh } = place(m, f);
+      const lx = Math.abs(dw - f.fw) / 2 / f.fw;
+      const ly = Math.abs(dh - f.fh) / 2 / f.fh;
+      m.ox = clamp(m.ox, -lx, lx);
+      m.oy = clamp(m.oy, -ly, ly);
+    }
+
+    function shownShare(f, p) {
+      const ix = Math.max(0, Math.min(p.x + p.dw, f.fw) - Math.max(p.x, 0));
+      const iy = Math.max(0, Math.min(p.y + p.dh, f.fh) - Math.max(p.y, 0));
+      return (ix * iy) / (p.dw * p.dh);
+    }
+
+    // Most slides that still keep the whole photo at a ratio Instagram accepts
+    function bestN() {
+      return clamp(Math.floor(S.W / S.H / MIN_A + 1e-6), 2, 20);
+    }
+
+    function ratioLabel(a) {
+      for (const [name, v] of Object.entries(SHAPES)) if (Math.abs(a - v) < 0.006) return name;
+      return a.toFixed(2) + ":1";
+    }
+
+    // ---------- Drawing ----------
+
+    function halve(src) {
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(src.width / 2));
+      c.height = Math.max(1, Math.round(src.height / 2));
+      const x = c.getContext("2d");
+      x.imageSmoothingQuality = "high";
+      x.drawImage(src, 0, 0, c.width, c.height);
+      return c;
+    }
+
+    // The smallest copy that is still at least as large as the drawn size
+    function level(k) {
+      let i = 0, s = 1;
+      while (s / 2 >= k && Math.min(pyramid[i].width, pyramid[i].height) > 16) {
+        if (!pyramid[i + 1]) pyramid[i + 1] = halve(pyramid[i]);
+        i++;
+        s /= 2;
+      }
+      return pyramid[i];
+    }
+
+    function blurPass(src, dst, w, h, r, horizontal) {
+      const d = 2 * r + 1;
+      const outer = horizontal ? h : w, inner = horizontal ? w : h;
+      const step = horizontal ? 4 : w * 4;
+      for (let o = 0; o < outer; o++) {
+        const base = horizontal ? o * w * 4 : o * 4;
+        for (let c = 0; c < 3; c++) {
+          let sum = 0;
+          for (let i = -r; i <= r; i++) sum += src[base + clamp(i, 0, inner - 1) * step + c];
+          for (let i = 0; i < inner; i++) {
+            dst[base + i * step + c] = sum / d;
+            sum += src[base + Math.min(i + r + 1, inner - 1) * step + c] - src[base + Math.max(i - r, 0) * step + c];
+          }
+        }
+      }
+    }
+
+    // A small, heavily blurred copy of the photo covering the whole frame.
+    // Done by hand because Safari's canvas has no blur filter.
+    function blurBackground(f) {
+      const key = (f.fw / f.fh).toFixed(4);
+      if (blurCache.has(key)) return blurCache.get(key);
+      const h = 64, w = Math.max(8, Math.round((h * f.fw) / f.fh));
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      const x = c.getContext("2d", { willReadFrequently: true });
+      const k = Math.max(w / S.W, h / S.H);
+      x.imageSmoothingQuality = "high";
+      x.drawImage(level(k), (w - S.W * k) / 2, (h - S.H * k) / 2, S.W * k, S.H * k);
+      const data = x.getImageData(0, 0, w, h);
+      const tmp = new Float32Array(data.data.length);
+      for (let pass = 0; pass < 3; pass++) {
+        blurPass(data.data, tmp, w, h, 5, true);
+        blurPass(tmp, data.data, w, h, 5, false);
+      }
+      x.putImageData(data, 0, 0);
+      blurCache.set(key, c);
+      return c;
+    }
+
+    function paintFill(ctx, f) {
+      if (S.fill === "blur") {
+        ctx.drawImage(blurBackground(f), 0, 0, f.fw, f.fh);
+        if (S.dim > 0) {
+          ctx.fillStyle = `rgba(0,0,0,${S.dim})`;
+          ctx.fillRect(0, 0, f.fw, f.fh);
+        }
+      } else {
+        ctx.fillStyle = S.fill === "black" ? "#000" : S.fill === "white" ? "#fff" : S.color;
+        ctx.fillRect(0, 0, f.fw, f.fh);
+      }
+    }
+
+    // Paints the whole frame in frame units; callers shift ctx to pick a panel
+    function paint(ctx, f, p, src) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      const gap = p.x > 0.5 || p.y > 0.5 || p.x + p.dw < f.fw - 0.5 || p.y + p.dh < f.fh - 0.5;
+      if (gap) paintFill(ctx, f);
+      ctx.drawImage(src, p.x, p.y, p.dw, p.dh);
+    }
+
+    function reelPlace(t) {
+      const r = S.reel;
+      let e = r.dur ? clamp(t / r.dur, 0, 1) : 0;
+      if (r.ease) e = 0.5 - 0.5 * Math.cos(Math.PI * e);
+      const z = r.z0 + (r.z1 - r.z0) * e;
+      const pos = r.p0 + (r.p1 - r.p0) * e;
+      const k = Math.max(REEL.w / S.W, REEL.h / S.H) * z;
+      const dw = S.W * k, dh = S.H * k;
+      return { k, dw, dh, x: (REEL.w - dw) * pos, y: (REEL.h - dh) * r.v };
+    }
+
+    // Largest size that fits the stage; returns CSS pixels per frame unit
+    function sizeView(fw, fh) {
+      const stage = $("#stage");
+      const narrow = innerWidth <= 860;
+      const maxW = stage.clientWidth - (narrow ? 32 : 48);
+      const maxH = narrow ? innerHeight * 0.58 : stage.clientHeight - (S.mode === "reel" ? 150 : 110);
+      const vs = Math.min(maxW / fw, maxH / fh);
+      const cssW = Math.round(fw * vs), cssH = Math.round(fh * vs);
+      const dpr = devicePixelRatio || 1;
+      if (view.width !== Math.round(cssW * dpr) || view.height !== Math.round(cssH * dpr)) {
+        view.width = Math.round(cssW * dpr);
+        view.height = Math.round(cssH * dpr);
+        view.style.width = cssW + "px";
+        view.style.height = cssH + "px";
+      }
+      return { vs: cssW / fw, dpr };
+    }
+
+    let drawQueued = false;
+    function requestDraw() {
+      if (drawQueued) return;
+      drawQueued = true;
+      requestAnimationFrame(() => {
+        drawQueued = false;
+        draw();
+      });
+    }
+
+    function draw() {
+      if (!S.img) return;
+      if (S.mode === "reel") return drawReel();
+      const m = cur(), f = frame(m);
+      clampPos(m, f);
+      const { vs, dpr } = sizeView(f.fw, f.fh);
+      const p = place(m, f);
+      vctx.setTransform(1, 0, 0, 1, 0, 0);
+      vctx.clearRect(0, 0, view.width, view.height);
+      vctx.setTransform(vs * dpr, 0, 0, vs * dpr, 0, 0);
+      paint(vctx, f, p, level(p.k * vs * dpr));
+
+      // Overlays in CSS pixels
+      vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const pw = f.pw * vs, ph = f.ph * vs;
+      if (S.thirds) {
+        vctx.strokeStyle = "rgba(255,255,255,.35)";
+        vctx.lineWidth = 1;
+        vctx.beginPath();
+        for (let i = 0; i < f.n; i++) {
+          for (const t of [1 / 3, 2 / 3]) {
+            vctx.moveTo(i * pw + t * pw, 0); vctx.lineTo(i * pw + t * pw, ph);
+            vctx.moveTo(i * pw, t * ph); vctx.lineTo(i * pw + pw, t * ph);
+          }
+        }
+        vctx.stroke();
+      }
+      if (f.n > 1) {
+        for (let i = 1; i < f.n; i++) {
+          const x = Math.round(i * pw) + 0.5;
+          vctx.setLineDash([]);
+          vctx.strokeStyle = "rgba(0,0,0,.55)";
+          vctx.lineWidth = 3;
+          vctx.beginPath(); vctx.moveTo(x, 0); vctx.lineTo(x, ph); vctx.stroke();
+          vctx.setLineDash([6, 5]);
+          vctx.strokeStyle = "rgba(255,255,255,.9)";
+          vctx.lineWidth = 1;
+          vctx.beginPath(); vctx.moveTo(x, 0); vctx.lineTo(x, ph); vctx.stroke();
+        }
+        vctx.setLineDash([]);
+        vctx.font = "600 11px Inter, system-ui, sans-serif";
+        for (let i = 0; i < f.n; i++) {
+          const label = String(i + 1);
+          const tw = vctx.measureText(label).width;
+          vctx.fillStyle = "rgba(0,0,0,.55)";
+          vctx.beginPath();
+          vctx.roundRect(i * pw + 6, 6, tw + 10, 18, 9);
+          vctx.fill();
+          vctx.fillStyle = "#fff";
+          vctx.fillText(label, i * pw + 11, 19);
+        }
+      }
+      updateInfo(m, f, p);
+    }
+
+    function drawReel() {
+      const { vs, dpr } = sizeView(REEL.w, REEL.h);
+      const p = reelPlace(S.reel.t);
+      vctx.setTransform(1, 0, 0, 1, 0, 0);
+      vctx.clearRect(0, 0, view.width, view.height);
+      vctx.setTransform(vs * dpr, 0, 0, vs * dpr, 0, 0);
+      vctx.imageSmoothingQuality = "high";
+      vctx.drawImage(level(p.k * vs * dpr), p.x, p.y, p.dw, p.dh);
+      const r = S.reel;
+      $("#time").textContent = `${r.t.toFixed(1)} / ${r.dur.toFixed(1)} s`;
+      $("#scrub").value = Math.round((r.t / r.dur) * 1000);
+      $("#info").textContent = `${S.origW} × ${S.origH} photo · 1080 × 1920 video · ${r.dur} s`;
+    }
+
+    // ---------- Panel ----------
+
+    function updateInfo(m, f, p) {
+      const shown = Math.round(shownShare(f, p) * 100);
+      const each = f.n > 1 ? `${f.n} slides, each ${f.pw} × ${f.ph}` : `${f.pw} × ${f.ph}`;
+      $("#info").textContent = `${S.origW} × ${S.origH} photo · ${each} (${ratioLabel(f.a)}) · shows ${shown}% of the photo`;
+
+      const note = $("#shapeNote");
+      note.classList.toggle("warn", f.a < SAFE_A - 0.003);
+      if (f.a < SAFE_A - 0.003) {
+        note.textContent = "Taller than 4:5. Post it from the Instagram app; scheduling tools still cap feed posts at 4:5.";
+      } else if (m.shape === "auto") {
+        note.textContent = "Auto picks the shape that keeps the whole photo, from 1.91:1 wide to 3:4 tall.";
+      } else {
+        note.textContent = "";
+      }
+
+      const [zmin, zmax] = zoomRange(f);
+      $("#zoom").value = Math.round((Math.log(m.zoom / zmin) / Math.log(zmax / zmin)) * 1000);
+      const whole = Math.abs(m.zoom - containK(f) / coverK(f)) < 0.002;
+      $("#zoomVal").textContent = whole ? "Whole" : Math.round(m.zoom * 100) + "%";
+    }
+
+    function renderChips() {
+      const m = S.modes.carousel;
+      const R = S.W / S.H;
+      const best = bestN();
+      const top = Math.min(20, Math.max(8, best + 2));
+      const box = $("#chips");
+      box.innerHTML = "";
+      for (let n = 2; n <= top; n++) {
+        const b = document.createElement("button");
+        b.className = "chip";
+        if (n === best && m.shape === "auto") b.classList.add("best");
+        b.setAttribute("aria-pressed", String(n === m.n));
+        let sub;
+        if (m.shape === "auto") {
+          // Outside Instagram's range the shape is clamped and the photo crops
+          const a = R / n;
+          sub = a < MIN_A ? `${Math.round((a / MIN_A) * 100)}%`
+            : a > MAX_A ? `${Math.round((MAX_A / a) * 100)}%`
+            : ratioLabel(a);
+        } else {
+          const F = n * SHAPES[m.shape];
+          sub = `${Math.round((Math.min(F, R) / Math.max(F, R)) * 100)}%`;
+        }
+        b.innerHTML = `<b>${n}</b><span>${sub}</span>`;
+        b.onclick = () => {
+          m.n = n;
+          changed();
+        };
+        box.append(b);
+      }
+      $("#chipsNote").textContent = m.shape === "auto"
+        ? "Under each count: the slide shape that keeps the whole photo, or how much of it shows when it has to crop. The dot marks the most slides with no cropping."
+        : "Under each count: how much of the photo shows when it fills the slides.";
+    }
+
+    function syncPanel() {
+      const mode = S.mode;
+      $$(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mode === mode)));
+      $$("[data-for]").forEach((el) => (el.hidden = !el.dataset.for.split(" ").includes(mode)));
+      $("#tabLede").textContent = LEDES[mode];
+      $("#player").hidden = mode !== "reel";
+      $("#hint").hidden = mode === "reel";
+      view.classList.toggle("locked", mode === "reel");
+      if (mode !== "reel") {
+        const m = cur();
+        $("#shapeTitle").textContent = m.n > 1 || mode === "carousel" ? "Slide shape" : "Shape";
+        $('[data-shape="auto"]').hidden = mode !== "carousel";
+        $$("#shapes button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.shape === m.shape)));
+        $$("#fills button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.fill === S.fill)));
+        $("#dimRow").hidden = S.fill !== "blur";
+        $("#colorRow").hidden = S.fill !== "color";
+        if (mode === "carousel") renderChips();
+        const n = m.n;
+        $("#export").textContent = n > 1 ? `Export ${n} slides` : "Export image";
+      } else {
+        $("#export").textContent = "Export video";
+      }
+    }
+
+    function changed() {
+      syncPanel();
+      requestDraw();
+      const res = $("#results");
+      if (!res.hidden && !res.classList.contains("stale")) {
+        res.classList.add("stale");
+        res.insertAdjacentHTML("afterbegin", '<p class="note warn" style="margin:0 0 8px">Settings changed since this export. Export again to update.</p>');
+      }
+    }
+
+    // ---------- Loading ----------
+
+    async function decode(file) {
+      try {
+        return await createImageBitmap(file);
+      } catch {
+        // Some formats (HEIC in Safari) only decode through an <img>
+        const url = URL.createObjectURL(file);
+        try {
+          const img = new Image();
+          img.src = url;
+          await img.decode();
+          return await createImageBitmap(img);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      }
+    }
+
+    async function load(file) {
+      if (!file || !file.type.startsWith("image/") && !/\.(heic|heif)$/i.test(file.name)) return;
+      let bmp;
+      try {
+        bmp = await decode(file);
+      } catch {
+        alertNote("This browser can't open that file. Try a JPEG or PNG.");
+        return;
+      }
+      S.origW = bmp.width;
+      S.origH = bmp.height;
+      let src = bmp;
+      if (bmp.width * bmp.height > MAX_PIXELS) {
+        const s = Math.sqrt(MAX_PIXELS / (bmp.width * bmp.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(bmp.width * s);
+        c.height = Math.round(bmp.height * s);
+        const x = c.getContext("2d");
+        x.imageSmoothingQuality = "high";
+        x.drawImage(bmp, 0, 0, c.width, c.height);
+        bmp.close?.();
+        src = c;
+      }
+      S.img = src;
+      S.W = src.width;
+      S.H = src.height;
+      S.base = file.name.replace(/\.[^.]+$/, "") || "photo";
+      pyramid = [src];
+      blurCache = new Map();
+      resetModes();
+      clearResults();
+      $("#empty").hidden = true;
+      $("#app").hidden = false;
+      $("#change").hidden = false;
+      syncPanel();
+      draw();
+    }
+
+    function alertNote(text) {
+      const lede = $(".drop .lede");
+      lede.textContent = text;
+      lede.classList.add("warn");
+    }
+
+    function resetModes() {
+      Object.assign(S.modes.carousel, { n: bestN(), shape: "auto", zoom: 1, ox: 0, oy: 0 });
+      for (const k of ["fit", "crop"]) Object.assign(S.modes[k], { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 });
+      const f = frame(S.modes.fit);
+      S.modes.fit.zoom = containK(f) / coverK(f);
+      stopReel();
+      S.reel.t = 0;
+    }
+
+    // ---------- Interaction ----------
+
+    const pointers = new Map();
+    let gesture = null;
+
+    function framePoint(e) {
+      const rect = view.getBoundingClientRect();
+      const f = frame(cur());
+      return { x: ((e.clientX - rect.left) / rect.width) * f.fw, y: ((e.clientY - rect.top) / rect.height) * f.fh };
+    }
+
+    // Zoom by ratio r, keeping frame point P where it is
+    function zoomAt(r, P) {
+      const m = cur(), f = frame(m);
+      const [zmin, zmax] = zoomRange(f);
+      const z = clamp(m.zoom * r, zmin, zmax);
+      r = z / m.zoom;
+      const cx = f.fw / 2 + m.ox * f.fw, cy = f.fh / 2 + m.oy * f.fh;
+      m.zoom = z;
+      m.ox = (P.x + (cx - P.x) * r - f.fw / 2) / f.fw;
+      m.oy = (P.y + (cy - P.y) * r - f.fh / 2) / f.fh;
+    }
+
+    view.addEventListener("pointerdown", (e) => {
+      if (S.mode === "reel") return;
+      view.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, framePoint(e));
+      view.classList.add("dragging");
+      gesture = null;
+    });
+
+    view.addEventListener("pointermove", (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      const m = cur(), f = frame(m);
+      const prev = pointers.get(e.pointerId);
+      const now = framePoint(e);
+      if (pointers.size === 1) {
+        m.ox += (now.x - prev.x) / f.fw;
+        m.oy += (now.y - prev.y) / f.fh;
+      } else if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        const other = a === prev ? b : a;
+        const d0 = Math.hypot(prev.x - other.x, prev.y - other.y);
+        const d1 = Math.hypot(now.x - other.x, now.y - other.y);
+        if (d0 > 0) zoomAt(d1 / d0, { x: (now.x + other.x) / 2, y: (now.y + other.y) / 2 });
+        m.ox += (now.x - prev.x) / 2 / f.fw;
+        m.oy += (now.y - prev.y) / 2 / f.fh;
+      }
+      pointers.set(e.pointerId, now);
+      changed();
+    });
+
+    const endPointer = (e) => {
+      pointers.delete(e.pointerId);
+      if (!pointers.size) view.classList.remove("dragging");
+    };
+    view.addEventListener("pointerup", endPointer);
+    view.addEventListener("pointercancel", endPointer);
+
+    view.addEventListener("wheel", (e) => {
+      if (S.mode === "reel") return;
+      e.preventDefault();
+      zoomAt(Math.exp(-e.deltaY * 0.0015), framePoint(e));
+      changed();
+    }, { passive: false });
+
+    view.addEventListener("dblclick", () => {
+      if (S.mode === "reel") return;
+      const m = cur(), f = frame(m);
+      m.ox = m.oy = 0;
+      m.zoom = S.mode === "fit" ? containK(f) / coverK(f) : 1;
+      changed();
+    });
+
+    $$(".tabs button").forEach((b) => (b.onclick = () => {
+      if (S.mode === b.dataset.mode) return;
+      stopReel();
+      S.mode = b.dataset.mode;
+      clearResults();
+      syncPanel();
+      draw();
+    }));
+
+    $$("#shapes button").forEach((b) => (b.onclick = () => {
+      const m = cur();
+      m.shape = b.dataset.shape;
+      if (S.mode === "fit") {
+        const f = frame(m);
+        m.zoom = containK(f) / coverK(f);
+      }
+      changed();
+    }));
+
+    $("#zoom").oninput = (e) => {
+      const m = cur(), f = frame(m);
+      const [zmin, zmax] = zoomRange(f);
+      const z = zmin * Math.pow(zmax / zmin, e.target.value / 1000);
+      zoomAt(z / m.zoom, { x: f.fw / 2 + m.ox * f.fw, y: f.fh / 2 + m.oy * f.fh });
+      changed();
+    };
+    $("#fitWhole").onclick = () => {
+      const m = cur(), f = frame(m);
+      Object.assign(m, { zoom: containK(f) / coverK(f), ox: 0, oy: 0 });
+      changed();
+    };
+    $("#fillFrame").onclick = () => {
+      const m = cur();
+      Object.assign(m, { zoom: 1, ox: 0, oy: 0 });
+      changed();
+    };
+    $("#center").onclick = () => {
+      const m = cur();
+      Object.assign(m, { ox: 0, oy: 0 });
+      changed();
+    };
+
+    $$("#fills button").forEach((b) => (b.onclick = () => {
+      S.fill = b.dataset.fill;
+      changed();
+    }));
+    $("#dim").oninput = (e) => {
+      S.dim = e.target.value / 100;
+      $("#dimVal").textContent = e.target.value + "%";
+      changed();
+    };
+    $("#color").oninput = (e) => {
+      S.color = e.target.value;
+      changed();
+    };
+    $("#thirds").onchange = (e) => {
+      S.thirds = e.target.checked;
+      requestDraw();
+    };
+    $("#outW").onchange = (e) => {
+      S.outW = Number(e.target.value);
+      blurCache = new Map();
+      changed();
+    };
+
+    const reelInputs = {
+      p0: [(v) => (S.reel.p0 = v / 100), (v) => v + "%"],
+      p1: [(v) => (S.reel.p1 = v / 100), (v) => v + "%"],
+      vpos: [(v) => (S.reel.v = v / 100), (v) => v + "%"],
+      z0: [(v) => (S.reel.z0 = v / 100), (v) => v + "%"],
+      z1: [(v) => (S.reel.z1 = v / 100), (v) => v + "%"],
+      dur: [(v) => { S.reel.dur = v; S.reel.t = Math.min(S.reel.t, v); }, (v) => v + " s"],
+    };
+    for (const [id, [set, fmt]] of Object.entries(reelInputs)) {
+      $("#" + id).oninput = (e) => {
+        const v = Number(e.target.value);
+        set(v);
+        $(`#${id}Val`).textContent = fmt(v);
+        // Show the moment the slider controls
+        if (!S.reel.playing) {
+          if (id === "p0" || id === "z0") S.reel.t = 0;
+          if (id === "p1" || id === "z1") S.reel.t = S.reel.dur;
+        }
+        changed();
+      };
+    }
+    $("#ease").onchange = (e) => {
+      S.reel.ease = e.target.checked;
+      changed();
+    };
+
+    function stopReel() {
+      S.reel.playing = false;
+      $("#play").textContent = "Play";
+    }
+    $("#play").onclick = () => {
+      const r = S.reel;
+      if (r.playing) return stopReel();
+      r.playing = true;
+      $("#play").textContent = "Pause";
+      if (r.t >= r.dur) r.t = 0;
+      let last = performance.now();
+      const tick = (now) => {
+        if (!r.playing || S.mode !== "reel") return;
+        r.t += (now - last) / 1000;
+        last = now;
+        if (r.t >= r.dur) r.t = 0;
+        draw();
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    $("#scrub").oninput = (e) => {
+      stopReel();
+      S.reel.t = (e.target.value / 1000) * S.reel.dur;
+      requestDraw();
+    };
+
+    // ---------- Export ----------
+
+    const pad = (i) => String(i).padStart(2, "0");
+    const toBlob = (c, type, q) => new Promise((r) => c.toBlob(r, type, q));
+    const fmtSize = (b) => (b > 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.round(b / 1e3) + " KB");
+
+    async function exportImages(btn) {
+      const m = cur(), f = frame(m);
+      clampPos(m, f);
+      const p = place(m, f);
+      const src = level(p.k);
+      const files = [];
+      for (let i = 0; i < f.n; i++) {
+        btn.textContent = f.n > 1 ? `Rendering ${i + 1} of ${f.n}…` : "Rendering…";
+        const c = document.createElement("canvas");
+        c.width = f.pw;
+        c.height = f.ph;
+        const x = c.getContext("2d");
+        x.translate(-i * f.pw, 0);
+        paint(x, f, p, src);
+        const blob = await toBlob(c, "image/jpeg", JPEG_QUALITY);
+        files.push(new File([blob], `${S.base}_${pad(i + 1)}.jpg`, { type: "image/jpeg" }));
+        c.width = c.height = 0;
+        await sleep(0);
+      }
+      return files;
+    }
+
+    async function pickEncoderConfig() {
+      for (const codec of ["avc1.64002a", "avc1.4d002a", "avc1.42002a"]) {
+        const config = { codec, width: REEL.w, height: REEL.h, bitrate: 16e6, framerate: REEL.fps };
+        try {
+          if ((await VideoEncoder.isConfigSupported(config)).supported) return config;
+        } catch {}
+      }
+      return null;
+    }
+
+    function renderReelFrame(ctx, t) {
+      const p = reelPlace(t);
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(level(p.k), p.x, p.y, p.dw, p.dh);
+    }
+
+    // Frame by frame with WebCodecs: faster than real time and no dropped frames
+    async function exportReel(btn) {
+      const r = S.reel;
+      const frames = Math.round(r.dur * REEL.fps);
+      const c = document.createElement("canvas");
+      c.width = REEL.w;
+      c.height = REEL.h;
+      const ctx = c.getContext("2d");
+      const name = `${S.base}_reel`;
+
+      const config = "VideoEncoder" in window ? await pickEncoderConfig() : null;
+      if (!config) return exportReelRecorder(btn, c, ctx, name);
+
+      const { Muxer, ArrayBufferTarget } = await import("./vendor/mp4-muxer.min.mjs");
+      const muxer = new Muxer({
+        target: new ArrayBufferTarget(),
+        video: { codec: "avc", width: REEL.w, height: REEL.h, frameRate: REEL.fps },
+        fastStart: "in-memory",
+      });
+      let failure = null;
+      const encoder = new VideoEncoder({
+        output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+        error: (e) => (failure = e),
+      });
+      encoder.configure(config);
+      const step = 1e6 / REEL.fps;
+      for (let i = 0; i < frames; i++) {
+        if (failure) throw failure;
+        renderReelFrame(ctx, (i / (frames - 1)) * r.dur);
+        const vf = new VideoFrame(c, { timestamp: Math.round(i * step), duration: Math.round(step) });
+        encoder.encode(vf, { keyFrame: i % (REEL.fps * 2) === 0 });
+        vf.close();
+        while (encoder.encodeQueueSize > 6) await sleep(4);
+        if (i % 10 === 0) {
+          btn.textContent = `Rendering ${Math.round((i / frames) * 100)}%…`;
+          await sleep(0);
+        }
+      }
+      await encoder.flush();
+      if (failure) throw failure;
+      muxer.finalize();
+      encoder.close();
+      return [new File([muxer.target.buffer], name + ".mp4", { type: "video/mp4" })];
+    }
+
+    // Fallback for browsers without WebCodecs: records the canvas in real time
+    async function exportReelRecorder(btn, c, ctx, name) {
+      const mime = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"]
+        .find((t) => window.MediaRecorder?.isTypeSupported(t));
+      if (!mime) throw new Error("This browser can't make videos. Try Chrome or Safari.");
+      const stream = c.captureStream(REEL.fps);
+      const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 16e6 });
+      const chunks = [];
+      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+      const done = new Promise((res) => (rec.onstop = res));
+      renderReelFrame(ctx, 0);
+      rec.start();
+      const dur = S.reel.dur, t0 = performance.now();
+      await new Promise((res) => {
+        const tick = () => {
+          const t = (performance.now() - t0) / 1000;
+          renderReelFrame(ctx, Math.min(t, dur));
+          btn.textContent = `Recording ${Math.round((Math.min(t, dur) / dur) * 100)}%…`;
+          if (t >= dur) return res();
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+      rec.stop();
+      await done;
+      const ext = mime.startsWith("video/mp4") ? "mp4" : "webm";
+      return [new File(chunks, `${name}.${ext}`, { type: mime.split(";")[0] })];
+    }
+
+    $("#export").onclick = async (e) => {
+      const btn = e.currentTarget;
+      if (btn.disabled) return;
+      btn.disabled = true;
+      stopReel();
+      try {
+        const files = S.mode === "reel" ? await exportReel(btn) : await exportImages(btn);
+        showResults(files);
+      } catch (err) {
+        console.error(err);
+        showError(err.message || String(err));
+      } finally {
+        btn.disabled = false;
+        syncPanel();
+      }
+    };
+
+    function clearResults() {
+      resultUrls.forEach((u) => URL.revokeObjectURL(u));
+      resultUrls = [];
+      const res = $("#results");
+      res.hidden = true;
+      res.classList.remove("stale");
+      res.innerHTML = "";
+    }
+
+    function showError(text) {
+      clearResults();
+      const res = $("#results");
+      res.hidden = false;
+      res.innerHTML = `<p class="note warn" style="margin:0">Export failed: ${text}</p>`;
+    }
+
+    function download(file) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(file);
+      a.download = file.name;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    }
+
+    async function makeZip(files) {
+      const table = makeZip.table ||= Array.from({ length: 256 }, (_, n) => {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        return c >>> 0;
+      });
+      const crc32 = (buf) => {
+        let c = 0xffffffff;
+        for (let i = 0; i < buf.length; i++) c = table[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+        return (c ^ 0xffffffff) >>> 0;
+      };
+      const d = new Date();
+      const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+      const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+      const parts = [], central = [];
+      let offset = 0;
+      for (const file of files) {
+        const data = new Uint8Array(await file.arrayBuffer());
+        const name = new TextEncoder().encode(file.name);
+        const crc = crc32(data);
+        const local = new DataView(new ArrayBuffer(30));
+        // Stored (no compression): JPEGs and MP4s are already compressed
+        [[0, 0x04034b50, 4], [4, 20, 2], [6, 0x0800, 2], [8, 0, 2], [10, time, 2], [12, date, 2],
+         [14, crc, 4], [18, data.length, 4], [22, data.length, 4], [26, name.length, 2], [28, 0, 2]]
+          .forEach(([o, v, n]) => (n === 4 ? local.setUint32(o, v, true) : local.setUint16(o, v, true)));
+        const cen = new DataView(new ArrayBuffer(46));
+        [[0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0x0800, 2], [10, 0, 2], [12, time, 2], [14, date, 2],
+         [16, crc, 4], [20, data.length, 4], [24, data.length, 4], [28, name.length, 2], [30, 0, 2],
+         [32, 0, 2], [34, 0, 2], [36, 0, 2], [38, 0, 4], [42, offset, 4]]
+          .forEach(([o, v, n]) => (n === 4 ? cen.setUint32(o, v, true) : cen.setUint16(o, v, true)));
+        parts.push(local, name, data);
+        central.push(cen, name);
+        offset += 30 + name.length + data.length;
+      }
+      const size = central.reduce((s, p) => s + p.byteLength, 0);
+      const end = new DataView(new ArrayBuffer(22));
+      [[0, 0x06054b50, 4], [4, 0, 2], [6, 0, 2], [8, files.length, 2], [10, files.length, 2],
+       [12, size, 4], [16, offset, 4], [20, 0, 2]]
+        .forEach(([o, v, n]) => (n === 4 ? end.setUint32(o, v, true) : end.setUint16(o, v, true)));
+      return new File([...parts, ...central, end], `${S.base}.zip`, { type: "application/zip" });
+    }
+
+    function showResults(files) {
+      clearResults();
+      const res = $("#results");
+      res.hidden = false;
+      const total = files.reduce((s, f) => s + f.size, 0);
+      const isVideo = files[0].type.startsWith("video/");
+      const url = (f) => {
+        const u = URL.createObjectURL(f);
+        resultUrls.push(u);
+        return u;
+      };
+
+      if (isVideo) {
+        const v = document.createElement("video");
+        v.src = url(files[0]);
+        v.controls = v.loop = v.muted = v.playsInline = true;
+        res.append(v);
+      } else {
+        const strip = document.createElement("div");
+        strip.className = "strip";
+        for (const f of files) {
+          const a = document.createElement("a");
+          a.href = url(f);
+          a.download = f.name;
+          a.title = `Download ${f.name}`;
+          a.innerHTML = `<img src="${a.href}" alt="${f.name}" />`;
+          strip.append(a);
+        }
+        res.append(strip);
+      }
+
+      const meta = document.createElement("p");
+      meta.className = "meta";
+      meta.textContent = files.length > 1
+        ? `${files[0].name} to ${files.at(-1).name} · ${fmtSize(total)}. Swipe the strip to check the joins; tap one to save it.`
+        : `${files[0].name} · ${fmtSize(total)}`;
+      res.append(meta);
+      if (files[0].type === "video/webm") {
+        res.insertAdjacentHTML("beforeend", '<p class="note warn">This browser could only make a WebM video. Instagram may not accept it; try Chrome or Safari.</p>');
+      }
+
+      const btns = document.createElement("div");
+      btns.className = "btns";
+      const touch = matchMedia("(pointer: coarse)").matches;
+      if (touch && navigator.canShare?.({ files })) {
+        const share = document.createElement("button");
+        share.className = "btn primary";
+        share.textContent = isVideo ? "Save video" : `Save ${files.length > 1 ? "all " : ""}to Photos`;
+        share.onclick = () => navigator.share({ files }).catch(() => {});
+        btns.append(share);
+      }
+      const dl = document.createElement("button");
+      dl.className = "btn";
+      dl.textContent = files.length > 1 ? "Download all" : "Download";
+      dl.onclick = async () => {
+        for (const f of files) {
+          download(f);
+          await sleep(350);
+        }
+      };
+      btns.append(dl);
+      if (files.length > 1) {
+        const zip = document.createElement("button");
+        zip.className = "btn";
+        zip.textContent = "Download ZIP";
+        zip.onclick = async () => download(await makeZip(files));
+        btns.append(zip);
+      }
+      res.append(btns);
+      if (touch) res.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // ---------- File input ----------
+
+    $("#choose").onclick = $("#change").onclick = () => $("#file").click();
+    $("#file").onchange = (e) => {
+      load(e.target.files[0]);
+      e.target.value = "";
+    };
+
+    let dragDepth = 0;
+    addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      dragDepth++;
+      document.body.classList.add("dragging");
+    });
+    addEventListener("dragleave", () => {
+      if (--dragDepth <= 0) {
+        dragDepth = 0;
+        document.body.classList.remove("dragging");
+      }
+    });
+    addEventListener("dragover", (e) => e.preventDefault());
+    addEventListener("drop", (e) => {
+      e.preventDefault();
+      dragDepth = 0;
+      document.body.classList.remove("dragging");
+      load(e.dataTransfer.files[0]);
+    });
+    addEventListener("paste", (e) => {
+      const item = [...e.clipboardData.items].find((i) => i.type.startsWith("image/"));
+      if (item) load(item.getAsFile());
+    });
+    addEventListener("resize", requestDraw);
+
+    syncPanel();
+  </script>
+</body>
+</html>
