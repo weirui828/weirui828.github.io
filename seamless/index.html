@@ -16,9 +16,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 
   <script>
+    // Text on accent buttons: dark on light accents, white on dark ones
+    function accentInk(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const lin = (c) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+      const L = 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+      return L > 0.18 ? "#111114" : "#ffffff";
+    }
+    function applyTheme(theme, custom) {
+      const root = document.documentElement;
+      if (theme && theme !== "violet") root.dataset.theme = theme;
+      else delete root.dataset.theme;
+      if (theme === "custom" && custom) {
+        root.style.setProperty("--accent", custom);
+        root.style.setProperty("--accent-ink", accentInk(custom));
+      } else {
+        root.style.removeProperty("--accent");
+        root.style.removeProperty("--accent-ink");
+      }
+    }
     try {
-      const t = localStorage.getItem("seamless.theme");
-      if (t && t !== "violet") document.documentElement.dataset.theme = t;
+      applyTheme(localStorage.getItem("seamless.theme"), localStorage.getItem("seamless.accent"));
     } catch {}
   </script>
   <style>
@@ -277,6 +295,10 @@
     .swatch:hover { background: var(--raise-hover); }
     .swatch i { width: 22px; height: 22px; border-radius: 50%; background: var(--c); }
     .swatch[aria-pressed="true"] { border-color: var(--c); box-shadow: 0 0 0 1px var(--c); }
+    label.swatch { position: relative; cursor: pointer; }
+    .swatch input[type="color"] { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+    /* Before a custom color is set, the dot shows the whole color wheel */
+    #customSwatch:not(.set) i { background: conic-gradient(#f87171, #fbbf24, #a3e635, #22d3ee, #818cf8, #f472b6, #f87171); }
     .help-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 24px 24px; }
     .help-body section > p:first-child { margin-top: 18px; color: var(--muted); }
     .help-body figure { margin: 16px 0 6px; }
@@ -777,6 +799,7 @@
           <button class="swatch" data-theme-pick="gold" style="--c:#fbbf24"><i></i>Gold</button>
           <button class="swatch" data-theme-pick="rose" style="--c:#f472b6"><i></i>Rose</button>
           <button class="swatch" data-theme-pick="emerald" style="--c:#34d399"><i></i>Emerald</button>
+          <label class="swatch" data-theme-pick="custom" id="customSwatch" style="--c:#ececf1"><i></i>Custom<input type="color" id="customColor" value="#a78bfa" aria-label="Custom color" /></label>
         </div>
       </section>
     </div>
@@ -2265,19 +2288,39 @@
     };
     $$(".help-tabs button").forEach((b) => (b.onclick = () => showHelpTab(b.dataset.help)));
 
+    let customColor = null;
+    try {
+      customColor = localStorage.getItem("seamless.accent");
+    } catch {}
+
     function syncSwatches() {
       const current = document.documentElement.dataset.theme || "violet";
       $$("[data-theme-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themePick === current)));
+      const sw = $("#customSwatch");
+      sw.classList.toggle("set", !!customColor);
+      if (customColor) {
+        sw.style.setProperty("--c", customColor);
+        $("#customColor").value = customColor;
+      }
     }
-    $$("[data-theme-pick]").forEach((b) => (b.onclick = () => {
-      const t = b.dataset.themePick;
-      if (t === "violet") delete document.documentElement.dataset.theme;
-      else document.documentElement.dataset.theme = t;
+    function pickTheme(t) {
+      applyTheme(t, customColor);
       try {
         localStorage.setItem("seamless.theme", t);
       } catch {}
       syncSwatches();
+    }
+    // The Custom swatch is a label, so a click also opens the color picker
+    $$("[data-theme-pick]").forEach((b) => (b.onclick = () => {
+      if (b.dataset.themePick !== "custom" || customColor) pickTheme(b.dataset.themePick);
     }));
+    $("#customColor").oninput = (e) => {
+      customColor = e.target.value;
+      try {
+        localStorage.setItem("seamless.accent", customColor);
+      } catch {}
+      pickTheme("custom");
+    };
     syncSwatches();
     $("#helpClose").onclick = () => help.close();
     help.addEventListener("click", (e) => e.target === help && help.close());
