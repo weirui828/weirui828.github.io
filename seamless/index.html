@@ -120,7 +120,6 @@
     #view.dragging { cursor: grabbing; }
     #view.locked { cursor: default; }
     .info { margin: 0; color: var(--muted); font-size: .8125rem; text-align: center; }
-    .hint { margin: 0; color: var(--faint); font-size: .75rem; text-align: center; }
 
     .player { display: flex; align-items: center; gap: 10px; width: min(420px, 100%); }
     .player .time { font-variant-numeric: tabular-nums; font-size: .8125rem; color: var(--muted); min-width: 72px; text-align: right; }
@@ -151,7 +150,6 @@
     }
     .tabs button:hover { color: var(--text); }
     .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
-    .tab-lede { margin: 10px 2px 0; color: var(--muted); font-size: .8125rem; }
 
     .group { margin-top: 22px; }
     .group h3 {
@@ -242,6 +240,38 @@
     .results .btns { flex-wrap: wrap; }
 
     .narrow-only { display: none; }
+
+    .help-btn { width: 36px; padding: 8px 0; border-radius: 50%; font-weight: 700; }
+
+    /* Help dialog */
+    #help {
+      width: min(760px, calc(100vw - 32px));
+      max-height: min(88vh, 960px);
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      color: var(--text);
+    }
+    #help::backdrop { background: rgba(0, 0, 0, .65); }
+    #help[open] { display: flex; flex-direction: column; }
+    .help-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px 0; }
+    .help-head h2 { flex: 1; margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.25rem; }
+    .help-close { width: 36px; padding: 6px 0; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 1.5rem; line-height: 1; }
+    .help-close:hover { background: var(--raise); color: var(--text); }
+    .help-tabs { grid-template-columns: repeat(5, 1fr); margin: 14px 20px 0; }
+    .help-body { overflow-y: auto; padding: 4px 20px 24px; }
+    .help-body section > p:first-child { margin-top: 18px; color: var(--muted); }
+    .help-body figure { margin: 16px 0 6px; }
+    .help-body img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: #000; }
+    .help-body figure.narrow img { max-width: 320px; }
+    .help-body h3 { margin: 22px 0 6px; font-size: .9375rem; }
+    .help-body p, .help-body li { color: var(--muted); font-size: .875rem; }
+    .help-body p { margin: 0 0 8px; }
+    .help-body ul { margin: 0 0 8px; padding-left: 20px; }
+    .help-body b { color: var(--text); font-weight: 600; }
+    .help-body code { padding: 1px 5px; border-radius: 5px; background: var(--raise); color: var(--text); font-size: .8125rem; }
+    .help-foot { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--faint); font-size: .8125rem; }
 
     .start-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
@@ -335,6 +365,12 @@
       .top { padding: 0 16px; gap: 8px; }
       .top .by, .wide-only { display: none; }
 
+      /* Help fills the screen on phones */
+      #help { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border: 0; border-radius: 0; }
+      .help-tabs { margin: 12px 16px 0; }
+      .help-tabs button { font-size: .75rem; }
+      .help-body { padding: 4px 16px 32px; }
+
       /* Batch grid stacks: one card per photo, steps listed under it */
       .batch { padding: 16px 16px 40px; }
       .grid-wrap { overflow-x: visible; }
@@ -366,6 +402,7 @@
     <span class="spacer"></span>
     <button class="btn" id="wfBtn" hidden></button>
     <button class="btn" id="change" hidden>Change<span class="wide-only"> photo</span></button>
+    <button class="btn help-btn" id="helpBtn" aria-label="Help" title="Help">?</button>
   </header>
 
   <input type="file" id="file" accept="image/*" hidden />
@@ -403,7 +440,6 @@
       <p class="note" id="folderHint" hidden>Chrome won't save straight into your home folder, Downloads, Desktop or Documents. In the picker, make a new folder inside one of them (New Folder) and choose that one.</p>
       <div class="batch-empty" id="batchEmpty">Add up to 10 photos. Each one goes through every step.</div>
       <div class="grid-wrap" id="gridWrap" hidden><table class="grid" id="grid"></table></div>
-      <p class="hint" id="gridHint" hidden>Click a result to adjust it for that photo only.</p>
       <div class="results" id="batchResults" hidden></div>
     </section>
 
@@ -411,7 +447,6 @@
       <div class="stage" id="stage">
         <div class="stage-inner"><canvas id="view"></canvas></div>
         <p class="info" id="info"></p>
-        <p class="hint" id="hint">Drag to move the photo. Scroll or pinch to zoom. Double-click to reset.</p>
         <div class="player" id="player" hidden>
           <button class="btn" id="play">Play</button>
           <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Playback position" />
@@ -434,12 +469,10 @@
           <button role="tab" data-mode="crop" aria-selected="false">Crop</button>
           <button role="tab" data-mode="reel" aria-selected="false">Reel</button>
         </div>
-        <p class="tab-lede" id="tabLede"></p>
 
         <div class="group" data-for="carousel">
           <h3>Slides</h3>
           <div class="chips" id="chips"></div>
-          <p class="note" id="chipsNote"></p>
         </div>
 
         <div class="group" data-for="carousel fit crop">
@@ -450,7 +483,7 @@
             <button data-shape="3:4">3:4</button>
             <button data-shape="1:1">1:1</button>
           </div>
-          <p class="note" id="shapeNote"></p>
+          <p class="note warn" id="shapeNote" hidden>Taller than 4:5: post it from the Instagram app.</p>
         </div>
 
         <div class="group" data-for="carousel fit crop">
@@ -484,7 +517,6 @@
             <label for="color">Color</label>
             <input type="color" id="color" value="#1a1a1a" />
           </div>
-          <p class="note">Shows only where the photo doesn't cover the frame.</p>
         </div>
 
         <div class="group" data-for="carousel fit crop">
@@ -509,7 +541,6 @@
             <input type="range" id="vpos" min="0" max="100" value="50" />
             <output id="vposVal">50%</output>
           </div>
-          <p class="note">0% shows the left edge of the photo, 100% the right edge.</p>
         </div>
 
         <div class="group" data-for="reel">
@@ -546,7 +577,6 @@
               <option value="2160">2160 px</option>
             </select>
           </div>
-          <p class="note" data-for="reel">1080 × 1920 MP4, 30 fps, no sound. Add music in Instagram.</p>
           <button class="btn primary wide" id="export" style="margin-top:12px">Export</button>
           <button class="btn wide" id="saveStep" style="margin-top:8px">+ Add to batch</button>
           <p class="note" id="saveNote" hidden></p>
@@ -557,11 +587,97 @@
           <h3>Batch</h3>
           <div class="steps" id="steps"></div>
           <button class="btn primary wide" id="runWf" style="margin-top:10px">Run on photos…</button>
-          <p class="note">Click a step to load its settings onto this photo.</p>
         </div>
       </aside>
     </section>
   </main>
+
+  <dialog id="help" aria-labelledby="helpTitle">
+    <div class="help-head">
+      <h2 id="helpTitle">How Seamless works</h2>
+      <button class="help-close" id="helpClose" aria-label="Close help">×</button>
+    </div>
+    <div class="tabs help-tabs" role="tablist">
+      <button role="tab" data-help="carousel">Carousel</button>
+      <button role="tab" data-help="fit">Fit</button>
+      <button role="tab" data-help="crop">Crop</button>
+      <button role="tab" data-help="reel">Reel</button>
+      <button role="tab" data-help="batch">Batch</button>
+    </div>
+    <div class="help-body">
+      <section data-help="carousel">
+        <p>Split a wide photo into slides. On Instagram, people swipe through them and see one continuous picture.</p>
+        <figure><img src="help/carousel.webp" width="1400" height="712" alt="A panorama split into four slides, with the slide counts in the panel" loading="lazy" /></figure>
+        <h3>Slides</h3>
+        <p>Pick how many slides to make. The small line under each number tells you what you get:</p>
+        <ul>
+          <li>With the <b>Auto</b> shape, it's the slide shape that keeps the whole photo, like <code>4:5</code> or <code>0.89:1</code>. A percentage means the photo is too wide for that many slides and will be cropped.</li>
+          <li>With a fixed shape, it's how much of the photo the slides show.</li>
+          <li>The dot marks the most slides you can have without cropping.</li>
+        </ul>
+        <h3>Slide shape</h3>
+        <p><b>Auto</b> keeps the whole photo by choosing any shape Instagram accepts, from 1.91:1 (wide) to 3:4 (tall). <b>4:5</b>, <b>3:4</b> and <b>1:1</b> fill the slides exactly, so part of the photo may be cut off.</p>
+        <p>Instagram accepts slides up to 3:4 when you post from its app. Scheduling tools stop at 4:5, so the panel warns you when slides are taller than that.</p>
+        <h3>Position</h3>
+        <p>Drag the photo to move it. Scroll or pinch to zoom, and double-click to reset. <b>Whole photo</b> fits all of it inside the frame, <b>Fill frame</b> covers the frame with no gaps, and <b>Center</b> centers it.</p>
+        <h3>Empty space</h3>
+        <p>If the photo doesn't cover the frame, the gaps are filled with a blurred copy of the photo (use <b>Darken</b> to tone it down), black, white or a color you pick.</p>
+        <h3>Export</h3>
+        <p>Images are 1080 px wide by default, the size Instagram keeps. Files are named after your photo with the slide number added: <code>DSC_0420_01.jpg</code>, <code>DSC_0420_02.jpg</code> and so on. Post them in order as one carousel.</p>
+        <p>On a phone, <b>Save to Photos</b> puts them straight into your camera roll. You can also tap the preview strip to save a single slide.</p>
+      </section>
+
+      <section data-help="fit" hidden>
+        <p>Put the whole photo on a tall frame, so it takes up more of the screen in the feed instead of a thin strip.</p>
+        <figure><img src="help/fit.webp" width="1400" height="712" alt="A wide photo centered on a 4:5 frame with a blurred border" loading="lazy" /></figure>
+        <h3>Shape</h3>
+        <p>Choose <b>4:5</b> (works everywhere), <b>3:4</b> (tallest, Instagram app only) or <b>1:1</b>.</p>
+        <h3>Border</h3>
+        <p>The space around the photo can be a blurred copy of the photo, black, white or any color. Zoom out a little to leave a margin on every side.</p>
+        <p>Export gives one image, named like <code>DSC_0420_01.jpg</code>.</p>
+      </section>
+
+      <section data-help="crop" hidden>
+        <p>Frame a tall version of the photo for Instagram, and keep the full photo for your website.</p>
+        <figure><img src="help/crop.webp" width="1400" height="712" alt="A 4:5 crop of a photo with rule-of-thirds lines" loading="lazy" /></figure>
+        <p>Choose a shape, then drag and zoom until the framing looks right. Turn on <b>Rule-of-thirds lines</b> under Guides to help place the horizon or your subject. The panel's info line shows how much of the photo the crop keeps.</p>
+      </section>
+
+      <section data-help="reel" hidden>
+        <p>Turn the photo into a slow pan video for Reels, which Instagram tends to show to more people than regular posts.</p>
+        <figure><img src="help/reel.webp" width="1400" height="712" alt="A 9:16 video frame panning across a photo, with the pan and zoom controls" loading="lazy" /></figure>
+        <h3>Pan</h3>
+        <p><b>Start</b> and <b>End</b> set where the video begins and ends: 0% is the left edge of the photo and 100% is the right edge. Swap them to pan the other way. <b>Up/down</b> picks the part of a tall photo to show.</p>
+        <h3>Zoom and timing</h3>
+        <p>Set the zoom at the start and end for a slow push in or pull out. <b>Length</b> runs from 3 to 30 seconds. <b>Ease in and out</b> starts and stops the motion gently. Use <b>Play</b> and the slider under the preview to check it.</p>
+        <h3>Export</h3>
+        <p>A 1080 × 1920 MP4 at 30 fps, named like <code>DSC_0420_reel.mp4</code>. It has no sound, so add trending audio or a voiceover in Instagram when you post.</p>
+      </section>
+
+      <section data-help="batch" hidden>
+        <p>Set up your favorite settings once, then run them on up to 10 photos at a time.</p>
+        <h3>1. Add steps</h3>
+        <p>In any mode, set things up on a photo the way you like them and click <b>+ Add to batch</b>. Each click saves the current settings as one step, up to 5 steps. For example, a carousel, a 4:5 fit with a blurred border and a 10-second Reel.</p>
+        <figure class="narrow"><img src="help/batch-steps.webp" width="620" height="460" alt="The Batch section of the panel with three saved steps" loading="lazy" /></figure>
+        <p>The steps appear under <b>Batch</b> in the panel. Click one to load its settings onto your photo, or <b>×</b> to remove it. Steps are saved in this browser, so they're still there next time.</p>
+        <h3>How settings carry over</h3>
+        <ul>
+          <li>Zoom and position carry over in proportion, so "zoomed in a bit, moved up" stays that way on other photos.</li>
+          <li>A carousel with the <b>Auto</b> shape picks the best slide count for each photo. If you picked a number yourself, every photo gets that many slides.</li>
+        </ul>
+        <h3>2. Run it on your photos</h3>
+        <p>Click <b>Run on photos…</b> in the panel, <b>Batch</b> at the top, or <b>Open batch</b> on the start screen. Add up to 10 photos. You'll see every photo through every step, with an estimate of the number of files, their size and the time it takes.</p>
+        <figure><img src="help/batch.webp" width="1400" height="712" alt="The batch page: three photos in rows, one column per step" loading="lazy" /></figure>
+        <h3>3. Fix single photos</h3>
+        <p>If one result needs adjusting, click it. It opens in the editor for that photo and step only. Change it and click <b>Apply</b>, and the preview gets an <b>Adjusted</b> badge. <b>Go back to the step's settings</b> undoes the change.</p>
+        <h3>4. Export</h3>
+        <p><b>Export</b> makes one ZIP with every file, or offers Save to Photos on a phone. In Chrome and Edge on a computer, <b>Save to folder…</b> writes the files into a folder instead. Chrome won't save straight into Downloads, Desktop or Documents, so make a new folder inside one of them.</p>
+        <p>Each file name says where it came from: <code>DSC_0420_2-carousel_01.jpg</code> is photo DSC_0420, step 2, a carousel, slide 1.</p>
+      </section>
+
+      <p class="help-foot">Seamless runs entirely in your browser. Your photos are never uploaded.</p>
+    </div>
+  </dialog>
 
   <script type="module">
     const $ = (s) => document.querySelector(s);
@@ -586,12 +702,6 @@
     const touch = matchMedia("(pointer: coarse)").matches;
     const narrowMQ = matchMedia("(max-width: 860px)");
 
-    const LEDES = {
-      carousel: "Split a wide photo into slides. People swipe through them and see one continuous picture.",
-      fit: "Put the whole photo on a tall frame, so it takes more of the screen in the feed.",
-      crop: "Frame a tall version of the photo. Keep the full photo for your website.",
-      reel: "A slow pan across the photo as a 9:16 video. Add trending audio in Instagram.",
-    };
     const TYPE_NAMES = { carousel: "Carousel", fit: "Fit", crop: "Crop", reel: "Reel" };
 
     // The editor's state. S.photo is the photo on screen; the look (fill, color, dim) is shared by the image modes.
@@ -941,15 +1051,8 @@
       const each = f.n > 1 ? `${f.n} slides, each ${f.pw} × ${f.ph}` : `${f.pw} × ${f.ph}`;
       $("#info").textContent = `${P.origW} × ${P.origH} photo · ${each} (${ratioLabel(f.a)}) · shows ${shown}% of the photo`;
 
-      const note = $("#shapeNote");
-      note.classList.toggle("warn", f.a < SAFE_A - 0.003);
-      if (f.a < SAFE_A - 0.003) {
-        note.textContent = "Taller than 4:5. Post it from the Instagram app; scheduling tools still cap feed posts at 4:5.";
-      } else if (m.shape === "auto") {
-        note.textContent = "Auto picks the shape that keeps the whole photo, from 1.91:1 wide to 3:4 tall.";
-      } else {
-        note.textContent = "";
-      }
+      // The one note that stays in the panel: it depends on the current shape
+      $("#shapeNote").hidden = f.a >= SAFE_A - 0.003;
 
       const [zmin, zmax] = zoomRange(P, f);
       $("#zoom").value = Math.round((Math.log(m.zoom / zmin) / Math.log(zmax / zmin)) * 1000);
@@ -988,9 +1091,6 @@
         };
         box.append(b);
       }
-      $("#chipsNote").textContent = m.shape === "auto"
-        ? "Under each count: the slide shape that keeps the whole photo, or how much of it shows when it has to crop. The dot marks the most slides with no cropping."
-        : "Under each count: how much of the photo shows when it fills the slides.";
     }
 
     // Puts S's values back into the inputs (after loading a step or a stash)
@@ -1020,9 +1120,7 @@
         b.disabled = fixing && b.dataset.mode !== mode;
       });
       $$("[data-for]").forEach((el) => (el.hidden = !el.dataset.for.split(" ").includes(mode)));
-      $("#tabLede").textContent = LEDES[mode];
       $("#player").hidden = mode !== "reel";
-      $("#hint").hidden = mode === "reel";
       view.classList.toggle("locked", mode === "reel");
       if (mode !== "reel") {
         const m = cur();
@@ -1784,7 +1882,7 @@
       }
       $("#photoCount").textContent = `${B.photos.length} of ${MAX_PHOTOS} photos`;
       $("#batchEmpty").hidden = B.photos.length > 0;
-      $("#gridWrap").hidden = $("#gridHint").hidden = !B.photos.length;
+      $("#gridWrap").hidden = !B.photos.length;
       const grid = $("#grid");
       grid.innerHTML = "";
       const head = grid.insertRow();
@@ -2102,6 +2200,25 @@
     });
     addEventListener("resize", requestDraw);
     narrowMQ.addEventListener("change", () => S.view === "batch" && renderBatch());
+
+    // ---------- Help ----------
+
+    const help = $("#help");
+    function showHelpTab(name) {
+      $$("[data-help]").forEach((el) => {
+        if (el.tagName === "SECTION") el.hidden = el.dataset.help !== name;
+        else el.setAttribute("aria-selected", String(el.dataset.help === name));
+      });
+      $(".help-body").scrollTop = 0;
+    }
+    // Opens on the chapter for whatever is on screen
+    $("#helpBtn").onclick = () => {
+      showHelpTab(S.view === "batch" ? "batch" : S.view === "editor" ? S.mode : "carousel");
+      help.showModal();
+    };
+    $$(".help-tabs button").forEach((b) => (b.onclick = () => showHelpTab(b.dataset.help)));
+    $("#helpClose").onclick = () => help.close();
+    help.addEventListener("click", (e) => e.target === help && help.close());
 
     syncHeader();
   </script>
