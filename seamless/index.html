@@ -237,17 +237,6 @@
     .note.warn { color: var(--warn); }
 
     .results { margin-top: 14px; }
-    .results.stale .strip, .results.stale video { opacity: .45; }
-    .strip {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      border-radius: 6px;
-      background: #000;
-    }
-    .strip a { flex: 0 0 auto; scroll-snap-align: start; }
-    .strip img { display: block; height: 150px; }
-    .results video { display: block; width: 100%; max-height: 360px; border-radius: 6px; background: #000; }
     .results .meta { margin: 8px 0 0; color: var(--muted); font-size: .75rem; }
     .results .btns { flex-wrap: wrap; }
 
@@ -296,7 +285,8 @@
     .help-body h3 { margin: 22px 0 6px; font-size: .9375rem; }
     .help-body p, .help-body li { color: var(--muted); font-size: .875rem; }
     .help-body p { margin: 0 0 8px; }
-    .help-body ul { margin: 0 0 8px; padding-left: 20px; }
+    .help-body ul, .help-body ol { margin: 0 0 8px; padding-left: 20px; }
+    .help-body li + li { margin-top: 4px; }
     .help-body b { color: var(--text); font-weight: 600; }
     .help-body code { padding: 1px 5px; border-radius: 5px; background: var(--raise); color: var(--text); font-size: .8125rem; }
     .help-foot { margin: 0; padding: 12px 24px; border-top: 1px solid var(--line); color: var(--faint); font-size: .8125rem; }
@@ -632,78 +622,155 @@
     </div>
     <div class="help-body">
       <section data-help="carousel">
-        <p>Split a wide photo into slides. On Instagram, people swipe through them and see one continuous picture.</p>
-        <figure><img src="help/carousel.webp" width="1400" height="712" alt="A panorama split into four slides, with the slide counts in the panel" loading="lazy" /></figure>
+        <p>Use Carousel to cut a wide photo into slides. On Instagram, people swipe through the slides and see one continuous photo.</p>
+        <figure><img src="help/carousel.webp" width="1400" height="712" alt="A wide photo cut into two slides, with the number of slides in the panel" loading="lazy" /></figure>
+
         <h3>Slides</h3>
-        <p>Pick how many slides to make. The small line under each number tells you what you get:</p>
+        <p>Select the number of slides. The text below each number gives this data:</p>
         <ul>
-          <li>With the <b>Auto</b> shape, it's the slide shape that keeps the whole photo, like <code>4:5</code> or <code>0.89:1</code>. A percentage means the photo is too wide for that many slides and will be cropped.</li>
-          <li>With a fixed shape, it's how much of the photo the slides show.</li>
-          <li>The dot marks the most slides you can have without cropping.</li>
+          <li>With the <b>Auto</b> shape, the text shows the shape of each slide, for example <code>4:5</code> or <code>0.89:1</code>.</li>
+          <li>If the text shows a percentage, the photo is too wide for that number of slides. The percentage shows how much of the photo stays.</li>
+          <li>With a fixed shape, the text shows the percentage of the photo that the slides show.</li>
+          <li>The dot shows the largest number of slides that keeps all of the photo.</li>
         </ul>
+
         <h3>Slide shape</h3>
-        <p><b>Auto</b> keeps the whole photo by choosing any shape Instagram accepts, from 1.91:1 (wide) to 3:4 (tall). <b>4:5</b>, <b>3:4</b> and <b>1:1</b> fill the slides exactly, so part of the photo may be cut off.</p>
-        <p>Instagram accepts slides up to 3:4 when you post from its app. Scheduling tools stop at 4:5, so the panel warns you when slides are taller than that.</p>
+        <p><b>Auto</b> keeps all of the photo. It selects a shape between 1.91:1 (wide) and 3:4 (tall).</p>
+        <p><b>4:5</b>, <b>3:4</b> and <b>1:1</b> fill each slide fully. Seamless removes the parts of the photo that are outside the slides.</p>
+        <p><b>NOTE:</b> Instagram accepts slides up to 3:4 only when you post from the Instagram app. Tools that schedule posts accept slides up to 4:5. If the slides are taller than 4:5, the panel shows a warning.</p>
+
         <h3>Position</h3>
-        <p>Drag the photo to move it. Scroll or pinch to zoom, and double-click to reset. <b>Whole photo</b> fits all of it inside the frame, <b>Fill frame</b> covers the frame with no gaps, and <b>Center</b> centers it.</p>
+        <ul>
+          <li>To move the photo, drag it.</li>
+          <li>To zoom, scroll or pinch.</li>
+          <li>To go back to the initial position, double-click the photo.</li>
+          <li>To show all of the photo in the frame, click <b>Whole photo</b>.</li>
+          <li>To fill the frame with no gaps, click <b>Fill frame</b>.</li>
+          <li>To put the photo in the center, click <b>Center</b>.</li>
+        </ul>
+
         <h3>Empty space</h3>
-        <p>If the photo doesn't cover the frame, the gaps are filled with a blurred copy of the photo (use <b>Darken</b> to tone it down), black, white or a color you pick.</p>
+        <p>If the photo does not fill the frame, Seamless fills the empty space. Select <b>Blur</b> (a blurred copy of the photo), <b>Black</b>, <b>White</b> or <b>Color</b>.</p>
+        <p>With <b>Blur</b>, use <b>Darken</b> to make the fill darker.</p>
+
         <h3>Export</h3>
-        <p>Images are 1080 px wide by default, the size Instagram keeps. Files are named after your photo with the slide number added: <code>DSC_0420_01.jpg</code>, <code>DSC_0420_02.jpg</code> and so on. Post them in order as one carousel.</p>
-        <p>On a phone, <b>Save to Photos</b> puts them straight into your camera roll. You can also tap the preview strip to save a single slide.</p>
+        <p>The images are 1080 px wide if you do not change the width. Instagram keeps images at this width.</p>
+        <p>Each file has the name of your photo and the slide number, for example <code>DSC_0420_01.jpg</code> and <code>DSC_0420_02.jpg</code>.</p>
+        <ol>
+          <li>Click <b>Export</b>. If there is one image, Seamless downloads the image. If there are more images, Seamless downloads one ZIP file.</li>
+          <li>On a phone, the share sheet opens. To put the images in Photos, select <b>Save Images</b>.</li>
+          <li>On Instagram, post the slides as one carousel, in the sequence of their numbers.</li>
+        </ol>
       </section>
 
       <section data-help="fit" hidden>
-        <p>Put the whole photo on a tall frame, so it takes up more of the screen in the feed instead of a thin strip.</p>
-        <figure><img src="help/fit.webp" width="1400" height="712" alt="A wide photo centered on a 4:5 frame with a blurred border" loading="lazy" /></figure>
+        <p>Use Fit to put all of the photo on a tall frame. The photo then uses more of the screen in the Instagram feed.</p>
+        <figure><img src="help/fit.webp" width="1400" height="712" alt="A wide photo in the center of a 4:5 frame with a blurred border" loading="lazy" /></figure>
+
         <h3>Shape</h3>
-        <p>Choose <b>4:5</b> (works everywhere), <b>3:4</b> (tallest, Instagram app only) or <b>1:1</b>.</p>
+        <ul>
+          <li><b>4:5</b>: All tools accept this shape.</li>
+          <li><b>3:4</b>: The tallest shape. Use it only when you post from the Instagram app.</li>
+          <li><b>1:1</b>: A square.</li>
+        </ul>
+
         <h3>Border</h3>
-        <p>The space around the photo can be a blurred copy of the photo, black, white or any color. Zoom out a little to leave a margin on every side.</p>
-        <p>Export gives one image, named like <code>DSC_0420_01.jpg</code>.</p>
+        <p>Seamless fills the space around the photo. Select <b>Blur</b>, <b>Black</b>, <b>White</b> or <b>Color</b>.</p>
+        <p>To get a margin on all sides, decrease the zoom a small amount.</p>
+
+        <h3>Export</h3>
+        <p>Click <b>Export</b>. Seamless downloads one image, for example <code>DSC_0420_01.jpg</code>.</p>
       </section>
 
       <section data-help="crop" hidden>
-        <p>Frame a tall version of the photo for Instagram, and keep the full photo for your website.</p>
+        <p>Use Crop to make a tall version of the photo for Instagram. Keep the full photo for your website.</p>
         <figure><img src="help/crop.webp" width="1400" height="712" alt="A 4:5 crop of a sunset photo" loading="lazy" /></figure>
-        <p>Choose a shape, then drag and zoom until the framing looks right. The line under the photo shows how much of it the crop keeps.</p>
+        <ol>
+          <li>Select a shape.</li>
+          <li>Drag and zoom the photo until the frame shows the part that you want.</li>
+          <li>Click <b>Export</b>.</li>
+        </ol>
+        <p>The text below the photo shows the percentage of the photo that the crop keeps.</p>
       </section>
 
       <section data-help="reel" hidden>
-        <p>Turn the photo into a slow pan video for Reels, which Instagram tends to show to more people than regular posts.</p>
-        <figure><img src="help/reel.webp" width="1400" height="712" alt="A 9:16 video frame panning across a photo, with the pan and zoom controls" loading="lazy" /></figure>
+        <p>Use Reel to make a video that moves slowly across the photo. Instagram usually shows Reels to more people than other posts.</p>
+        <figure><img src="help/reel.webp" width="1400" height="712" alt="A 9:16 video frame that moves across a photo, with the pan and zoom controls" loading="lazy" /></figure>
+
         <h3>Pan</h3>
-        <p><b>Start</b> and <b>End</b> set where the video begins and ends: 0% is the left edge of the photo and 100% is the right edge. Swap them to pan the other way. <b>Up/down</b> picks the part of a tall photo to show.</p>
+        <p><b>Start</b> and <b>End</b> set the position at the start and at the end of the video. 0% is the left edge of the photo. 100% is the right edge.</p>
+        <ul>
+          <li>To move in the opposite direction, set <b>Start</b> to a value that is larger than <b>End</b>.</li>
+          <li>If the photo is tall, use <b>Up/down</b> to select the part of the photo that the video shows.</li>
+        </ul>
+
         <h3>Zoom and timing</h3>
-        <p>Set the zoom at the start and end for a slow push in or pull out. <b>Length</b> runs from 3 to 30 seconds. <b>Ease in and out</b> starts and stops the motion gently. Use <b>Play</b> and the slider under the preview to check it.</p>
+        <ul>
+          <li>Zoom <b>Start</b> and <b>End</b> set the zoom at the start and at the end of the video. Use different values to move slowly in or out.</li>
+          <li><b>Length</b> sets the duration of the video, from 3 to 30 seconds.</li>
+          <li><b>Ease in and out</b> makes the movement start and stop slowly.</li>
+          <li>To examine the video, click <b>Play</b> or move the slider below the preview.</li>
+        </ul>
+
         <h3>Export</h3>
-        <p>A 1080 × 1920 MP4 at 30 fps, named like <code>DSC_0420_reel.mp4</code>. It has no sound, so add trending audio or a voiceover in Instagram when you post.</p>
+        <p>Click <b>Export video</b>. Seamless downloads an MP4 video, 1080 × 1920 px, at 30 frames per second. The file name is, for example, <code>DSC_0420_reel.mp4</code>.</p>
+        <p><b>NOTE:</b> The video has no sound. When you post on Instagram, add music or your voice.</p>
       </section>
 
       <section data-help="batch" hidden>
-        <p>Set up your favorite settings once, then run them on up to 10 photos at a time.</p>
+        <p>Use Batch to apply the same settings to a maximum of 10 photos.</p>
+
         <h3>1. Add steps</h3>
-        <p>In any mode, set things up on a photo the way you like them and click <b>+ Add to batch</b>. Each click saves the current settings as one step, up to 5 steps. For example, a carousel, a 4:5 fit with a blurred border and a 10-second Reel.</p>
-        <figure class="narrow"><img src="help/batch-steps.webp" width="620" height="460" alt="The Batch section of the panel with three saved steps" loading="lazy" /></figure>
-        <p>The steps appear under <b>Batch</b> in the panel. Click one to load its settings onto your photo, or <b>×</b> to remove it. Steps are saved in this browser, so they're still there next time.</p>
-        <h3>How settings carry over</h3>
+        <ol>
+          <li>Open a photo in <b>Carousel</b>, <b>Fit</b>, <b>Crop</b> or <b>Reel</b>.</li>
+          <li>Set the controls as you want them.</li>
+          <li>Click <b>+ Add to batch</b>. Seamless keeps the current settings as one step.</li>
+          <li>To add more steps, change the settings and click <b>+ Add to batch</b> again. You can add a maximum of 5 steps.</li>
+        </ol>
+        <p>Example: a carousel, a 4:5 fit with a blurred border and a 10-second Reel.</p>
+        <figure class="narrow"><img src="help/batch-steps.webp" width="620" height="460" alt="The Batch section of the panel with three steps" loading="lazy" /></figure>
+        <p>The steps show below <b>Batch</b> in the panel. Seamless keeps the steps in this browser.</p>
         <ul>
-          <li>Zoom and position carry over in proportion, so "zoomed in a bit, moved up" stays that way on other photos.</li>
-          <li>A carousel with the <b>Auto</b> shape picks the best slide count for each photo. If you picked a number yourself, every photo gets that many slides.</li>
+          <li>To apply the settings of a step to your photo, click the step.</li>
+          <li>To remove a step, click <b>×</b>.</li>
         </ul>
-        <h3>2. Run it on your photos</h3>
-        <p>Click <b>Run on photos…</b> in the panel, <b>Batch</b> at the top, or <b>Open batch</b> on the start screen. Add up to 10 photos. You'll see every photo through every step, with an estimate of the number of files, their size and the time it takes.</p>
-        <figure><img src="help/batch.webp" width="1400" height="712" alt="The batch page: three photos in rows, one column per step" loading="lazy" /></figure>
-        <h3>3. Fix single photos</h3>
-        <p>If one result needs adjusting, click it. It opens in the editor for that photo and step only. Change it and click <b>Apply</b>, and the preview gets an <b>Adjusted</b> badge. <b>Go back to the step's settings</b> undoes the change.</p>
+
+        <h3>How the settings apply to other photos</h3>
+        <ul>
+          <li>Seamless applies zoom and position in proportion to each photo. For example, if you zoom in and move one photo up, all photos get the same change.</li>
+          <li>If a carousel step uses the <b>Auto</b> shape, Seamless selects the best number of slides for each photo.</li>
+          <li>If you selected a number of slides, all photos get that number of slides.</li>
+        </ul>
+
+        <h3>2. Apply the steps to your photos</h3>
+        <ol>
+          <li>Click <b>Run on photos…</b>. You can also click <b>Batch</b> at the top of the page or <b>Open batch</b> on the start screen.</li>
+          <li>Click <b>Add photos</b> and select a maximum of 10 photos.</li>
+          <li>Examine the results. Each row shows one photo. Each column shows one step.</li>
+        </ol>
+        <p>Above the results, Seamless shows the approximate number of files, their size and the time to make them.</p>
+        <figure><img src="help/batch.webp" width="1400" height="712" alt="The batch page: three photos in rows, one column for each step" loading="lazy" /></figure>
+
+        <h3>3. Adjust one photo</h3>
+        <ol>
+          <li>Click the result that you want to change. The editor opens for that photo and that step only.</li>
+          <li>Change the settings.</li>
+          <li>Click <b>Apply</b>. The result shows the label <b>Adjusted</b>.</li>
+        </ol>
+        <p>To remove your changes, click the result again. Then click <b>Go back to the step's settings</b>.</p>
+
         <h3>4. Export</h3>
-        <p><b>Export</b> makes one ZIP with every file, or offers Save to Photos on a phone. In Chrome and Edge on a computer, <b>Save to folder…</b> writes the files into a folder instead. Chrome won't save straight into Downloads, Desktop or Documents, so make a new folder inside one of them.</p>
-        <p>Each file name says where it came from: <code>DSC_0420_2-carousel_01.jpg</code> is photo DSC_0420, step 2, a carousel, slide 1.</p>
+        <ol>
+          <li>Click <b>Export</b>. Seamless downloads one ZIP file with all the files. If there is only one file, Seamless downloads that file.</li>
+          <li>On a phone, the share sheet opens. To put the files in Photos, select <b>Save Images</b>.</li>
+        </ol>
+        <p>In Chrome and Edge on a computer, you can click <b>Save to folder…</b>. Seamless then writes the files into a folder.</p>
+        <p><b>NOTE:</b> Chrome does not save files directly into Downloads, Desktop or Documents. Make a new folder in one of them, then select that folder.</p>
+        <p>Each file name shows the photo, the step and the slide. For example, <code>DSC_0420_2-carousel_01.jpg</code> is photo DSC_0420, step 2 (Carousel), slide 1.</p>
       </section>
 
       <section data-help="settings" hidden>
         <h3>Color</h3>
-        <p>Pick the accent color for buttons and highlights. These are the five colors of Weiniverse. Your choice is saved in this browser.</p>
         <div class="swatches" id="swatches">
           <button class="swatch" data-theme-pick="violet" style="--c:#a78bfa"><i></i>Violet</button>
           <button class="swatch" data-theme-pick="cyan" style="--c:#22d3ee"><i></i>Cyan</button>
@@ -713,7 +780,7 @@
         </div>
       </section>
     </div>
-    <p class="help-foot">Seamless runs entirely in your browser. Your photos are never uploaded.</p>
+    <p class="help-foot">Seamless operates only in your browser. It does not send your photos to a server.</p>
   </dialog>
 
   <script type="module">
@@ -1174,11 +1241,7 @@
       syncPanel();
       requestDraw();
       $("#saveNote").hidden = true;
-      const res = $("#results");
-      if (!res.hidden && !res.classList.contains("stale")) {
-        res.classList.add("stale");
-        res.insertAdjacentHTML("afterbegin", '<p class="note warn" style="margin:0 0 8px">Settings changed since this export. Export again to update.</p>');
-      }
+      clearResults();
     }
 
     // ---------- Views ----------
@@ -1561,7 +1624,7 @@
           files = await renderImages(P, cur(), S, S.outW, (i) => `${P.base}_${pad(i + 1)}.jpg`,
             (i, n) => (btn.textContent = n > 1 ? `Rendering ${i + 1} of ${n}…` : "Rendering…"));
         }
-        showResults(files, $("#results"), { strip: true });
+        await deliver(files, $("#results"), `${P.base}.zip`);
       } catch (err) {
         console.error(err);
         showError($("#results"), err.message || String(err));
@@ -1575,7 +1638,6 @@
       (box.urls || []).forEach((u) => URL.revokeObjectURL(u));
       box.urls = [];
       box.hidden = true;
-      box.classList.remove("stale");
       box.innerHTML = "";
     }
 
@@ -1637,76 +1699,41 @@
       return new File([...parts, ...central, end], zipName, { type: "application/zip" });
     }
 
-    function showResults(files, box, { strip = false, zipName } = {}) {
+    // One step: a single file downloads as it is, several go into one ZIP.
+    // On phones the share sheet is tried first, since that's how files reach Photos.
+    async function deliver(files, box, zipName) {
       clearResults(box);
-      box.hidden = false;
       const total = files.reduce((s, f) => s + f.size, 0);
-      const isVideo = files.length === 1 && files[0].type.startsWith("video/");
-      const url = (f) => {
-        const u = URL.createObjectURL(f);
-        box.urls.push(u);
-        return u;
+      const what = files.length > 1 ? `${files.length} files · ${fmtSize(total)}` : fmtSize(total);
+      const say = (html) => {
+        box.hidden = false;
+        box.insertAdjacentHTML("beforeend", html);
       };
-
-      if (strip && isVideo) {
-        const v = document.createElement("video");
-        v.src = url(files[0]);
-        v.controls = v.loop = v.muted = v.playsInline = true;
-        box.append(v);
-      } else if (strip) {
-        const row = document.createElement("div");
-        row.className = "strip";
-        for (const f of files) {
-          const a = document.createElement("a");
-          a.href = url(f);
-          a.download = f.name;
-          a.title = `Download ${f.name}`;
-          a.innerHTML = `<img src="${a.href}" alt="${f.name}" />`;
-          row.append(a);
-        }
-        box.append(row);
-      }
-
-      const meta = document.createElement("p");
-      meta.className = "meta";
-      meta.textContent = !strip
-        ? `${files.length} files · ${fmtSize(total)}`
-        : files.length > 1
-          ? `${files[0].name} to ${files.at(-1).name} · ${fmtSize(total)}. Swipe the strip to check the joins; tap one to save it.`
-          : `${files[0].name} · ${fmtSize(total)}`;
-      box.append(meta);
       if (files.some((f) => f.type === "video/webm")) {
-        box.insertAdjacentHTML("beforeend", '<p class="note warn">This browser could only make WebM videos. Instagram may not accept them; try Chrome or Safari.</p>');
+        say('<p class="note warn">This browser could only make WebM videos. Instagram may not accept them; try Chrome or Safari.</p>');
       }
 
-      const btns = document.createElement("div");
-      btns.className = "btns";
       if (touch && navigator.canShare?.({ files })) {
-        const share = document.createElement("button");
-        share.className = "btn primary";
-        share.textContent = isVideo ? "Save video" : `Save ${files.length > 1 ? "all " : ""}to Photos`;
-        share.onclick = () => navigator.share({ files }).catch(() => {});
-        btns.append(share);
-      }
-      const dl = document.createElement("button");
-      dl.className = "btn";
-      dl.textContent = files.length > 1 ? "Download all" : "Download";
-      dl.onclick = async () => {
-        for (const f of files) {
-          download(f);
-          await sleep(350);
+        try {
+          await navigator.share({ files });
+          say(`<p class="meta">Shared ${what}.</p>`);
+          return;
+        } catch (err) {
+          if (err.name === "AbortError") return;
+          // The browser wanted a fresh tap before sharing, so offer one
+          const btn = document.createElement("button");
+          btn.className = "btn primary wide";
+          btn.textContent = files.length > 1 ? `Save ${files.length} files to Photos` : "Save to Photos";
+          btn.onclick = () => navigator.share({ files }).catch(() => {});
+          box.hidden = false;
+          box.append(btn);
+          return;
         }
-      };
-      btns.append(dl);
-      if (files.length > 1) {
-        const zip = document.createElement("button");
-        zip.className = "btn";
-        zip.textContent = "Download ZIP";
-        zip.onclick = async () => download(await makeZip(files, zipName || `${S.photo.base}.zip`));
-        btns.append(zip);
       }
-      box.append(btns);
-      if (touch) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+      const file = files.length > 1 ? await makeZip(files, zipName) : files[0];
+      download(file);
+      say(`<p class="meta">Downloaded ${file.name} (${what}).</p>`);
     }
 
     // ---------- Batch steps ----------
@@ -2110,7 +2137,7 @@
         if (dir) {
           box.innerHTML = `<p class="meta">Saved ${done} files to the folder “${dir.name}”.</p>`;
         } else {
-          showResults(out, box, { zipName: "seamless-batch.zip" });
+          await deliver(out, box, "seamless-batch.zip");
         }
       } catch (err) {
         console.error(err);
