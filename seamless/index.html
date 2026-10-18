@@ -241,11 +241,98 @@
     .results .meta { margin: 8px 0 0; color: var(--muted); font-size: .75rem; }
     .results .btns { flex-wrap: wrap; }
 
+    .narrow-only { display: none; }
+
+    .start-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+    /* Workflow strip in the panel */
+    .steps { display: flex; flex-wrap: wrap; gap: 6px; }
+    .step-chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--raise);
+      font-size: .8125rem;
+    }
+    .step-chip > button { padding: 6px 4px 6px 10px; border: 0; background: none; text-align: left; }
+    .step-chip > button:hover { color: var(--accent); }
+    .step-chip .x { padding: 6px 9px 6px 6px; color: var(--faint); }
+    .step-chip .x:hover { color: var(--text); }
+    .step-chip b { margin-right: 4px; color: var(--accent); }
+
+    .fixbar {
+      margin-bottom: 14px;
+      padding: 12px;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      background: rgba(167, 139, 250, .08);
+      font-size: .8125rem;
+    }
+    .fixbar p { margin: 0; }
+    .fixbar .btns { margin-top: 10px; }
+    .linkish { margin-top: 8px; padding: 0; border: 0; background: none; color: var(--muted); font-size: .75rem; text-decoration: underline; }
+    .tabs button:disabled { opacity: .35; cursor: default; }
+
+    /* Batch view */
+    .batch { max-width: 1200px; margin: 0 auto; padding: 24px 20px 48px; }
+    .batch-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .batch-head h2 { margin: 0 0 6px; font-family: "Space Grotesk", sans-serif; font-size: 1.375rem; }
+    .step-list { margin: 0; padding-left: 20px; color: var(--muted); font-size: .875rem; }
+    .batch-bar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .batch-bar .spacer { flex: 1; }
+    .batch-bar .note { margin: 0; }
+    .batch-empty {
+      margin-top: 20px;
+      padding: 48px 16px;
+      border: 1.5px dashed rgba(255, 255, 255, .18);
+      border-radius: 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+    body.dragging .batch-empty { border-color: var(--accent); }
+    .grid-wrap { margin-top: 16px; overflow-x: auto; }
+    .grid { border-collapse: separate; border-spacing: 0 10px; }
+    .grid th { padding: 0 14px 0 0; color: var(--faint); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+    .grid td { padding: 0 14px 0 0; vertical-align: middle; }
+    .grid .name { max-width: 150px; font-size: .8125rem; word-break: break-all; }
+    .grid .name .x { margin-left: 4px; padding: 0 4px; border: 0; background: none; color: var(--faint); }
+    .grid .name .x:hover { color: var(--text); }
+    .cell { position: relative; display: block; padding: 0; border: 1px solid transparent; border-radius: 4px; background: #000; }
+    .cell:hover { border-color: var(--accent); }
+    .cell canvas { display: block; border-radius: 3px; }
+    .cell .badge {
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-size: .625rem;
+      font-weight: 600;
+    }
+    .loading { color: var(--faint); font-size: .75rem; }
+
     @media (max-width: 860px) {
       .app { display: block; height: auto; }
       .stage { padding: 12px 16px; }
       .panel { border-left: 0; border-top: 1px solid var(--line); padding: 16px 16px 40px; }
-      .top { padding: 0 16px; }
+      .top { padding: 0 16px; gap: 8px; }
+      .top .by, .wide-only { display: none; }
+      .narrow-only { display: inline; }
     }
   </style>
 </head>
@@ -254,18 +341,45 @@
     <span class="brand"><a href="./">Seamless</a></span>
     <a class="by" href="../">by Weiniverse</a>
     <span class="spacer"></span>
-    <button class="btn" id="change" hidden>Change photo</button>
+    <button class="btn" id="wfBtn" hidden></button>
+    <button class="btn" id="change" hidden>Change<span class="wide-only"> photo</span></button>
   </header>
 
   <input type="file" id="file" accept="image/*" hidden />
+  <input type="file" id="files" accept="image/*" multiple hidden />
 
   <main>
     <section class="empty" id="empty">
       <div class="drop">
         <h1>Seamless</h1>
         <p class="lede" id="loadError" hidden></p>
-        <button class="btn primary" id="choose">Choose a photo</button>
+        <div class="start-btns">
+          <button class="btn primary" id="choose">Choose a photo</button>
+          <button class="btn" id="startBatch" hidden>Run saved workflow</button>
+        </div>
       </div>
+    </section>
+
+    <section class="batch" id="batch" hidden>
+      <div class="batch-head">
+        <div>
+          <h2>Workflow</h2>
+          <ol class="step-list" id="batchSteps"></ol>
+        </div>
+        <button class="btn" id="backEditor">Back to editor</button>
+      </div>
+      <div class="batch-bar">
+        <button class="btn" id="addPhotos">Add photos</button>
+        <span class="note" id="photoCount"></span>
+        <span class="spacer"></span>
+        <span class="note" id="estimate"></span>
+        <button class="btn primary" id="runExport" disabled>Export</button>
+      </div>
+      <p class="note warn" id="batchWarn" hidden></p>
+      <div class="batch-empty" id="batchEmpty">Add up to 20 photos. Each one goes through every step.</div>
+      <div class="grid-wrap" id="gridWrap" hidden><table class="grid" id="grid"></table></div>
+      <p class="hint" id="gridHint" hidden>Click a result to adjust it for that photo only.</p>
+      <div class="results" id="batchResults" hidden></div>
     </section>
 
     <section class="app" id="app" hidden>
@@ -281,6 +395,14 @@
       </div>
 
       <aside class="panel">
+        <div class="fixbar" id="fixbar" hidden>
+          <p>Adjusting <b id="fixName"></b> for step <b id="fixStep"></b> only.</p>
+          <div class="btns">
+            <button class="btn primary" id="fixApply">Apply</button>
+            <button class="btn" id="fixCancel">Cancel</button>
+          </div>
+          <button class="linkish" id="fixReset" hidden>Go back to the step's settings</button>
+        </div>
         <div class="tabs" role="tablist">
           <button role="tab" data-mode="carousel" aria-selected="true">Carousel</button>
           <button role="tab" data-mode="fit" aria-selected="false">Fit</button>
@@ -401,7 +523,16 @@
           </div>
           <p class="note" data-for="reel">1080 × 1920 MP4, 30 fps, no sound. Add music in Instagram.</p>
           <button class="btn primary wide" id="export" style="margin-top:12px">Export</button>
+          <button class="btn wide" id="saveStep" style="margin-top:8px">+ Save as step</button>
+          <p class="note" id="saveNote" hidden></p>
           <div class="results" id="results" hidden></div>
+        </div>
+
+        <div class="group" id="wfGroup" hidden>
+          <h3>Workflow</h3>
+          <div class="steps" id="steps"></div>
+          <button class="btn primary wide" id="runWf" style="margin-top:10px">Run on photos…</button>
+          <p class="note">Click a step to load its settings onto this photo.</p>
         </div>
       </aside>
     </section>
@@ -412,6 +543,7 @@
     const $$ = (s) => [...document.querySelectorAll(s)];
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const round4 = (v) => Math.round(v * 1e4) / 1e4;
 
     // Instagram keeps any feed ratio from 1.91:1 (wide) to 3:4 (tall, app uploads);
     // 4:5 is the tallest that scheduling tools accept
@@ -420,8 +552,13 @@
     const MAX_A = 1.91;
     const SHAPES = { "4:5": 4 / 5, "3:4": 3 / 4, "1:1": 1 };
     const MAX_PIXELS = 24e6;   // keeps phones within their canvas memory limits
+    const THUMB_PIXELS = 2e6;  // batch previews only need a small copy
     const JPEG_QUALITY = 0.95;
     const REEL = { w: 1080, h: 1920, fps: 30 };
+    const MAX_STEPS = 8;
+    const MAX_PHOTOS = 20;
+    const STORE_KEY = "seamless.workflow.v1";
+    const touch = matchMedia("(pointer: coarse)").matches;
 
     const LEDES = {
       carousel: "Split a wide photo into slides. People swipe through them and see one continuous picture.",
@@ -429,58 +566,114 @@
       crop: "Frame a tall version of the photo. Keep the full photo for your website.",
       reel: "A slow pan across the photo as a 9:16 video. Add trending audio in Instagram.",
     };
+    const TYPE_NAMES = { carousel: "Carousel", fit: "Fit", crop: "Crop", reel: "Reel" };
 
+    // The editor's state. S.photo is the photo on screen; the look (fill, color, dim) is shared by the image modes.
     const S = {
-      img: null, W: 0, H: 0, origW: 0, origH: 0, base: "photo",
+      view: "start",
+      photo: null,
       mode: "carousel",
       modes: {
-        carousel: { n: 3, shape: "auto", zoom: 1, ox: 0, oy: 0 },
+        carousel: { n: 3, shape: "auto", zoom: 1, ox: 0, oy: 0, nPicked: false },
         fit: { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 },
         crop: { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 },
       },
       fill: "blur", color: "#1a1a1a", dim: 0.2, outW: 1080, thirds: false,
       reel: { dur: 8, p0: 0, p1: 1, z0: 1, z1: 1.06, v: 0.5, ease: true, t: 0, playing: false },
+      fix: null,   // { entry, step, stash } while adjusting one batch photo
     };
-    let pyramid = [];        // the photo at 1, 1/2, 1/4… scale, for clean downscaling
-    let blurCache = new Map();
-    let resultUrls = [];
+    let steps = loadSteps();
+    const B = { photos: [], nextId: 1, busy: false };
 
     const view = $("#view");
     const vctx = view.getContext("2d");
 
+    // ---------- Photos ----------
+
+    // A photo plus its downscaled copies (1, 1/2, 1/4…) and blurred backgrounds
+    function makePhoto(src, origW, origH, base) {
+      return { src, W: src.width, H: src.height, origW, origH, base, pyr: [src], blur: new Map() };
+    }
+
+    function releasePhoto(P) {
+      if (!P) return;
+      for (const c of P.pyr) c.close ? c.close() : (c.width = c.height = 0);
+      P.pyr = [];
+      P.blur.clear();
+    }
+
+    async function decode(file) {
+      try {
+        return await createImageBitmap(file);
+      } catch {
+        // Some formats (HEIC in Safari) only decode through an <img>
+        const url = URL.createObjectURL(file);
+        try {
+          const img = new Image();
+          img.src = url;
+          await img.decode();
+          return await createImageBitmap(img);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      }
+    }
+
+    const baseName = (file) => file.name.replace(/\.[^.]+$/, "") || "photo";
+    const isImage = (file) => file && (file.type.startsWith("image/") || /\.(heic|heif)$/i.test(file.name));
+
+    async function loadPhoto(file, maxPixels) {
+      const bmp = await decode(file);
+      const origW = bmp.width, origH = bmp.height;
+      let src = bmp;
+      if (origW * origH > maxPixels) {
+        const s = Math.sqrt(maxPixels / (origW * origH));
+        const c = document.createElement("canvas");
+        c.width = Math.round(origW * s);
+        c.height = Math.round(origH * s);
+        const x = c.getContext("2d");
+        x.imageSmoothingQuality = "high";
+        x.drawImage(bmp, 0, 0, c.width, c.height);
+        bmp.close?.();
+        src = c;
+      }
+      return makePhoto(src, origW, origH, baseName(file));
+    }
+
     // ---------- Geometry ----------
+    // m holds the layout: n panels of a shape, zoom (1 = photo just covers the frame) and offsets as
+    // fractions of the frame. Frame units are output pixels.
 
     const cur = () => S.modes[S.mode];
 
-    function panelAspect(m) {
-      if (m.shape === "auto") return clamp(S.W / (S.H * m.n), MIN_A, MAX_A);
+    function panelAspect(P, m) {
+      if (m.shape === "auto") return clamp(P.W / (P.H * m.n), MIN_A, MAX_A);
       return SHAPES[m.shape];
     }
 
-    // Frame units are output pixels: n panels, each pw × ph
-    function frame(m) {
-      const a = panelAspect(m);
-      const pw = S.outW;
+    function frame(P, m, outW) {
+      const a = panelAspect(P, m);
+      const pw = outW;
       const ph = Math.round(pw / a);
       return { a, pw, ph, n: m.n, fw: pw * m.n, fh: ph };
     }
 
-    const coverK = (f) => Math.max(f.fw / S.W, f.fh / S.H);
-    const containK = (f) => Math.min(f.fw / S.W, f.fh / S.H);
-    const zoomRange = (f) => [0.5 * containK(f) / coverK(f), 5];
+    const coverK = (P, f) => Math.max(f.fw / P.W, f.fh / P.H);
+    const containK = (P, f) => Math.min(f.fw / P.W, f.fh / P.H);
+    const zoomRange = (P, f) => [0.5 * containK(P, f) / coverK(P, f), 5];
 
-    function place(m, f) {
-      const k = coverK(f) * m.zoom;
-      const dw = S.W * k, dh = S.H * k;
+    function place(P, m, f) {
+      const k = coverK(P, f) * m.zoom;
+      const dw = P.W * k, dh = P.H * k;
       const cx = f.fw / 2 + m.ox * f.fw, cy = f.fh / 2 + m.oy * f.fh;
       return { k, dw, dh, x: cx - dw / 2, y: cy - dh / 2 };
     }
 
     // A photo larger than the frame can't leave a gap; a smaller one stays inside the frame
-    function clampPos(m, f) {
-      const [zmin, zmax] = zoomRange(f);
+    function clampPos(P, m, f) {
+      const [zmin, zmax] = zoomRange(P, f);
       m.zoom = clamp(m.zoom, zmin, zmax);
-      const { dw, dh } = place(m, f);
+      const { dw, dh } = place(P, m, f);
       const lx = Math.abs(dw - f.fw) / 2 / f.fw;
       const ly = Math.abs(dh - f.fh) / 2 / f.fh;
       m.ox = clamp(m.ox, -lx, lx);
@@ -494,8 +687,21 @@
     }
 
     // Most slides that still keep the whole photo at a ratio Instagram accepts
-    function bestN() {
-      return clamp(Math.floor(S.W / S.H / MIN_A + 1e-6), 2, 20);
+    function bestN(P) {
+      return clamp(Math.floor(P.W / P.H / MIN_A + 1e-6), 2, 20);
+    }
+
+    // The slide count a step uses when it didn't fix one: no cropping for Auto,
+    // otherwise the count that shows the most of the photo
+    function autoN(P, shape) {
+      if (shape === "auto") return bestN(P);
+      const R = P.W / P.H, a = SHAPES[shape];
+      let best = 2, bestShown = -1;
+      for (let n = 2; n <= 20; n++) {
+        const shown = Math.min(n * a, R) / Math.max(n * a, R);
+        if (shown > bestShown + 1e-9) [best, bestShown] = [n, shown];
+      }
+      return best;
     }
 
     function ratioLabel(a) {
@@ -516,14 +722,14 @@
     }
 
     // The smallest copy that is still at least as large as the drawn size
-    function level(k) {
+    function level(P, k) {
       let i = 0, s = 1;
-      while (s / 2 >= k && Math.min(pyramid[i].width, pyramid[i].height) > 16) {
-        if (!pyramid[i + 1]) pyramid[i + 1] = halve(pyramid[i]);
+      while (s / 2 >= k && Math.min(P.pyr[i].width, P.pyr[i].height) > 16) {
+        if (!P.pyr[i + 1]) P.pyr[i + 1] = halve(P.pyr[i]);
         i++;
         s /= 2;
       }
-      return pyramid[i];
+      return P.pyr[i];
     }
 
     function blurPass(src, dst, w, h, r, horizontal) {
@@ -545,17 +751,17 @@
 
     // A small, heavily blurred copy of the photo covering the whole frame.
     // Done by hand because Safari's canvas has no blur filter.
-    function blurBackground(f) {
+    function blurBackground(P, f) {
       const key = (f.fw / f.fh).toFixed(4);
-      if (blurCache.has(key)) return blurCache.get(key);
+      if (P.blur.has(key)) return P.blur.get(key);
       const h = 64, w = Math.max(8, Math.round((h * f.fw) / f.fh));
       const c = document.createElement("canvas");
       c.width = w;
       c.height = h;
       const x = c.getContext("2d", { willReadFrequently: true });
-      const k = Math.max(w / S.W, h / S.H);
+      const k = Math.max(w / P.W, h / P.H);
       x.imageSmoothingQuality = "high";
-      x.drawImage(level(k), (w - S.W * k) / 2, (h - S.H * k) / 2, S.W * k, S.H * k);
+      x.drawImage(level(P, k), (w - P.W * k) / 2, (h - P.H * k) / 2, P.W * k, P.H * k);
       const data = x.getImageData(0, 0, w, h);
       const tmp = new Float32Array(data.data.length);
       for (let pass = 0; pass < 3; pass++) {
@@ -563,41 +769,55 @@
         blurPass(tmp, data.data, w, h, 5, false);
       }
       x.putImageData(data, 0, 0);
-      blurCache.set(key, c);
+      P.blur.set(key, c);
       return c;
     }
 
-    function paintFill(ctx, f) {
-      if (S.fill === "blur") {
-        ctx.drawImage(blurBackground(f), 0, 0, f.fw, f.fh);
-        if (S.dim > 0) {
-          ctx.fillStyle = `rgba(0,0,0,${S.dim})`;
+    function paintFill(ctx, P, f, look) {
+      if (look.fill === "blur") {
+        ctx.drawImage(blurBackground(P, f), 0, 0, f.fw, f.fh);
+        if (look.dim > 0) {
+          ctx.fillStyle = `rgba(0,0,0,${look.dim})`;
           ctx.fillRect(0, 0, f.fw, f.fh);
         }
       } else {
-        ctx.fillStyle = S.fill === "black" ? "#000" : S.fill === "white" ? "#fff" : S.color;
+        ctx.fillStyle = look.fill === "black" ? "#000" : look.fill === "white" ? "#fff" : look.color;
         ctx.fillRect(0, 0, f.fw, f.fh);
       }
     }
 
     // Paints the whole frame in frame units; callers shift ctx to pick a panel
-    function paint(ctx, f, p, src) {
+    function paint(ctx, P, f, p, src, look) {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       const gap = p.x > 0.5 || p.y > 0.5 || p.x + p.dw < f.fw - 0.5 || p.y + p.dh < f.fh - 0.5;
-      if (gap) paintFill(ctx, f);
+      if (gap) paintFill(ctx, P, f, look);
       ctx.drawImage(src, p.x, p.y, p.dw, p.dh);
     }
 
-    function reelPlace(t) {
-      const r = S.reel;
+    function reelPlace(P, r, t) {
       let e = r.dur ? clamp(t / r.dur, 0, 1) : 0;
       if (r.ease) e = 0.5 - 0.5 * Math.cos(Math.PI * e);
       const z = r.z0 + (r.z1 - r.z0) * e;
       const pos = r.p0 + (r.p1 - r.p0) * e;
-      const k = Math.max(REEL.w / S.W, REEL.h / S.H) * z;
-      const dw = S.W * k, dh = S.H * k;
+      const k = Math.max(REEL.w / P.W, REEL.h / P.H) * z;
+      const dw = P.W * k, dh = P.H * k;
       return { k, dw, dh, x: (REEL.w - dw) * pos, y: (REEL.h - dh) * r.v };
+    }
+
+    function cutLines(ctx, n, pw, ph, dashed) {
+      for (let i = 1; i < n; i++) {
+        const x = Math.round(i * pw) + 0.5;
+        ctx.setLineDash([]);
+        ctx.strokeStyle = "rgba(0,0,0,.55)";
+        ctx.lineWidth = dashed ? 3 : 2;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ph); ctx.stroke();
+        ctx.setLineDash(dashed ? [6, 5] : [3, 3]);
+        ctx.strokeStyle = "rgba(255,255,255,.9)";
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ph); ctx.stroke();
+      }
+      ctx.setLineDash([]);
     }
 
     // Largest size that fits the stage; returns CSS pixels per frame unit
@@ -629,16 +849,16 @@
     }
 
     function draw() {
-      if (!S.img) return;
+      if (!S.photo || S.view !== "editor") return;
       if (S.mode === "reel") return drawReel();
-      const m = cur(), f = frame(m);
-      clampPos(m, f);
+      const P = S.photo, m = cur(), f = frame(P, m, S.outW);
+      clampPos(P, m, f);
       const { vs, dpr } = sizeView(f.fw, f.fh);
-      const p = place(m, f);
+      const p = place(P, m, f);
       vctx.setTransform(1, 0, 0, 1, 0, 0);
       vctx.clearRect(0, 0, view.width, view.height);
       vctx.setTransform(vs * dpr, 0, 0, vs * dpr, 0, 0);
-      paint(vctx, f, p, level(p.k * vs * dpr));
+      paint(vctx, P, f, p, level(P, p.k * vs * dpr), S);
 
       // Overlays in CSS pixels
       vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -656,18 +876,7 @@
         vctx.stroke();
       }
       if (f.n > 1) {
-        for (let i = 1; i < f.n; i++) {
-          const x = Math.round(i * pw) + 0.5;
-          vctx.setLineDash([]);
-          vctx.strokeStyle = "rgba(0,0,0,.55)";
-          vctx.lineWidth = 3;
-          vctx.beginPath(); vctx.moveTo(x, 0); vctx.lineTo(x, ph); vctx.stroke();
-          vctx.setLineDash([6, 5]);
-          vctx.strokeStyle = "rgba(255,255,255,.9)";
-          vctx.lineWidth = 1;
-          vctx.beginPath(); vctx.moveTo(x, 0); vctx.lineTo(x, ph); vctx.stroke();
-        }
-        vctx.setLineDash([]);
+        cutLines(vctx, f.n, pw, ph, true);
         vctx.font = "600 11px Inter, system-ui, sans-serif";
         for (let i = 0; i < f.n; i++) {
           const label = String(i + 1);
@@ -684,25 +893,27 @@
     }
 
     function drawReel() {
+      const P = S.photo;
       const { vs, dpr } = sizeView(REEL.w, REEL.h);
-      const p = reelPlace(S.reel.t);
+      const p = reelPlace(P, S.reel, S.reel.t);
       vctx.setTransform(1, 0, 0, 1, 0, 0);
       vctx.clearRect(0, 0, view.width, view.height);
       vctx.setTransform(vs * dpr, 0, 0, vs * dpr, 0, 0);
       vctx.imageSmoothingQuality = "high";
-      vctx.drawImage(level(p.k * vs * dpr), p.x, p.y, p.dw, p.dh);
+      vctx.drawImage(level(P, p.k * vs * dpr), p.x, p.y, p.dw, p.dh);
       const r = S.reel;
       $("#time").textContent = `${r.t.toFixed(1)} / ${r.dur.toFixed(1)} s`;
       $("#scrub").value = Math.round((r.t / r.dur) * 1000);
-      $("#info").textContent = `${S.origW} × ${S.origH} photo · 1080 × 1920 video · ${r.dur} s`;
+      $("#info").textContent = `${P.origW} × ${P.origH} photo · 1080 × 1920 video · ${r.dur} s`;
     }
 
     // ---------- Panel ----------
 
     function updateInfo(m, f, p) {
+      const P = S.photo;
       const shown = Math.round(shownShare(f, p) * 100);
       const each = f.n > 1 ? `${f.n} slides, each ${f.pw} × ${f.ph}` : `${f.pw} × ${f.ph}`;
-      $("#info").textContent = `${S.origW} × ${S.origH} photo · ${each} (${ratioLabel(f.a)}) · shows ${shown}% of the photo`;
+      $("#info").textContent = `${P.origW} × ${P.origH} photo · ${each} (${ratioLabel(f.a)}) · shows ${shown}% of the photo`;
 
       const note = $("#shapeNote");
       note.classList.toggle("warn", f.a < SAFE_A - 0.003);
@@ -714,16 +925,16 @@
         note.textContent = "";
       }
 
-      const [zmin, zmax] = zoomRange(f);
+      const [zmin, zmax] = zoomRange(P, f);
       $("#zoom").value = Math.round((Math.log(m.zoom / zmin) / Math.log(zmax / zmin)) * 1000);
-      const whole = Math.abs(m.zoom - containK(f) / coverK(f)) < 0.002;
+      const whole = Math.abs(m.zoom - containK(P, f) / coverK(P, f)) < 0.002;
       $("#zoomVal").textContent = whole ? "Whole" : Math.round(m.zoom * 100) + "%";
     }
 
     function renderChips() {
-      const m = S.modes.carousel;
-      const R = S.W / S.H;
-      const best = bestN();
+      const P = S.photo, m = S.modes.carousel;
+      const R = P.W / P.H;
+      const best = bestN(P);
       const top = Math.min(20, Math.max(8, best + 2));
       const box = $("#chips");
       box.innerHTML = "";
@@ -746,6 +957,7 @@
         b.innerHTML = `<b>${n}</b><span>${sub}</span>`;
         b.onclick = () => {
           m.n = n;
+          m.nPicked = true;
           changed();
         };
         box.append(b);
@@ -755,9 +967,32 @@
         : "Under each count: how much of the photo shows when it fills the slides.";
     }
 
+    // Puts S's values back into the inputs (after loading a step or a stash)
+    function syncInputs() {
+      const r = S.reel;
+      const set = (id, v, label) => {
+        $("#" + id).value = v;
+        $(`#${id}Val`).textContent = label;
+      };
+      set("p0", Math.round(r.p0 * 100), Math.round(r.p0 * 100) + "%");
+      set("p1", Math.round(r.p1 * 100), Math.round(r.p1 * 100) + "%");
+      set("vpos", Math.round(r.v * 100), Math.round(r.v * 100) + "%");
+      set("z0", Math.round(r.z0 * 100), Math.round(r.z0 * 100) + "%");
+      set("z1", Math.round(r.z1 * 100), Math.round(r.z1 * 100) + "%");
+      set("dur", r.dur, r.dur + " s");
+      $("#ease").checked = r.ease;
+      set("dim", Math.round(S.dim * 100), Math.round(S.dim * 100) + "%");
+      $("#color").value = S.color;
+      $("#outW").value = String(S.outW);
+      $("#thirds").checked = S.thirds;
+    }
+
     function syncPanel() {
-      const mode = S.mode;
-      $$(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mode === mode)));
+      const mode = S.mode, fixing = !!S.fix;
+      $$(".tabs button").forEach((b) => {
+        b.setAttribute("aria-selected", String(b.dataset.mode === mode));
+        b.disabled = fixing && b.dataset.mode !== mode;
+      });
       $$("[data-for]").forEach((el) => (el.hidden = !el.dataset.for.split(" ").includes(mode)));
       $("#tabLede").textContent = LEDES[mode];
       $("#player").hidden = mode !== "reel";
@@ -765,23 +1000,32 @@
       view.classList.toggle("locked", mode === "reel");
       if (mode !== "reel") {
         const m = cur();
-        $("#shapeTitle").textContent = m.n > 1 || mode === "carousel" ? "Slide shape" : "Shape";
+        $("#shapeTitle").textContent = mode === "carousel" ? "Slide shape" : "Shape";
         $('[data-shape="auto"]').hidden = mode !== "carousel";
         $$("#shapes button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.shape === m.shape)));
         $$("#fills button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.fill === S.fill)));
         $("#dimRow").hidden = S.fill !== "blur";
         $("#colorRow").hidden = S.fill !== "color";
         if (mode === "carousel") renderChips();
-        const n = m.n;
-        $("#export").textContent = n > 1 ? `Export ${n} slides` : "Export image";
+        $("#export").textContent = m.n > 1 ? `Export ${m.n} slides` : "Export image";
       } else {
         $("#export").textContent = "Export video";
       }
+
+      // While fixing one batch photo, only the fix bar's buttons can finish the job
+      $("#fixbar").hidden = !fixing;
+      $("#export").closest(".group").hidden = fixing;
+      $("#saveStep").disabled = steps.length >= MAX_STEPS;
+      $("#saveStep").textContent = steps.length >= MAX_STEPS ? `Workflow is full (${MAX_STEPS} steps)` : "+ Save as step";
+      $("#wfGroup").hidden = fixing || !steps.length;
+      renderSteps();
+      syncHeader();
     }
 
     function changed() {
       syncPanel();
       requestDraw();
+      $("#saveNote").hidden = true;
       const res = $("#results");
       if (!res.hidden && !res.classList.contains("stale")) {
         res.classList.add("stale");
@@ -789,74 +1033,65 @@
       }
     }
 
-    // ---------- Loading ----------
+    // ---------- Views ----------
 
-    async function decode(file) {
-      try {
-        return await createImageBitmap(file);
-      } catch {
-        // Some formats (HEIC in Safari) only decode through an <img>
-        const url = URL.createObjectURL(file);
-        try {
-          const img = new Image();
-          img.src = url;
-          await img.decode();
-          return await createImageBitmap(img);
-        } finally {
-          URL.revokeObjectURL(url);
-        }
-      }
+    function syncHeader() {
+      const wf = $("#wfBtn");
+      wf.hidden = !steps.length || S.view !== "editor" || !!S.fix;
+      wf.innerHTML = `Workflow<span class="wide-only"> · ${steps.length} step${steps.length === 1 ? "" : "s"}</span><span class="narrow-only"> (${steps.length})</span>`;
+      $("#change").hidden = S.view !== "editor" || !!S.fix;
+      $("#startBatch").hidden = !steps.length;
     }
 
+    function showView(v) {
+      S.view = v;
+      $("#empty").hidden = v !== "start";
+      $("#app").hidden = v !== "editor";
+      $("#batch").hidden = v !== "batch";
+      if (v !== "editor") stopReel();
+      if (v === "editor") {
+        syncPanel();
+        draw();
+      }
+      if (v === "batch") renderBatch();
+      syncHeader();
+      scrollTo(0, 0);
+    }
+
+    // ---------- Loading the example photo ----------
+
     async function load(file) {
-      if (!file || !file.type.startsWith("image/") && !/\.(heic|heif)$/i.test(file.name)) return;
-      let bmp;
+      if (!isImage(file)) return;
+      let P;
       try {
-        bmp = await decode(file);
+        P = await loadPhoto(file, MAX_PIXELS);
       } catch {
         alertNote("This browser can't open that file. Try a JPEG or PNG.");
         return;
       }
-      S.origW = bmp.width;
-      S.origH = bmp.height;
-      let src = bmp;
-      if (bmp.width * bmp.height > MAX_PIXELS) {
-        const s = Math.sqrt(MAX_PIXELS / (bmp.width * bmp.height));
-        const c = document.createElement("canvas");
-        c.width = Math.round(bmp.width * s);
-        c.height = Math.round(bmp.height * s);
-        const x = c.getContext("2d");
-        x.imageSmoothingQuality = "high";
-        x.drawImage(bmp, 0, 0, c.width, c.height);
-        bmp.close?.();
-        src = c;
-      }
-      S.img = src;
-      S.W = src.width;
-      S.H = src.height;
-      S.base = file.name.replace(/\.[^.]+$/, "") || "photo";
-      pyramid = [src];
-      blurCache = new Map();
+      releasePhoto(S.photo);
+      S.photo = P;
       resetModes();
       clearResults();
-      $("#empty").hidden = true;
-      $("#app").hidden = false;
-      $("#change").hidden = false;
-      syncPanel();
-      draw();
+      showView("editor");
     }
 
     function alertNote(text) {
+      if (S.view === "editor") {
+        $("#info").textContent = text;
+        return;
+      }
       const lede = $("#loadError");
       lede.textContent = text;
       lede.hidden = false;
     }
 
     function resetModes() {
-      Object.assign(S.modes.carousel, { n: bestN(), shape: "auto", zoom: 1, ox: 0, oy: 0 });
+      const P = S.photo;
+      Object.assign(S.modes.carousel, { n: bestN(P), shape: "auto", zoom: 1, ox: 0, oy: 0, nPicked: false });
       for (const k of ["fit", "crop"]) Object.assign(S.modes[k], { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 });
-      const f = frame(S.modes.fit);
-      S.modes.fit.zoom = containK(f) / coverK(f);
+      const f = frame(P, S.modes.fit, S.outW);
+      S.modes.fit.zoom = containK(P, f) / coverK(P, f);
       stopReel();
       S.reel.t = 0;
     }
@@ -864,24 +1099,23 @@
     // ---------- Interaction ----------
 
     const pointers = new Map();
-    let gesture = null;
 
     function framePoint(e) {
       const rect = view.getBoundingClientRect();
-      const f = frame(cur());
+      const f = frame(S.photo, cur(), S.outW);
       return { x: ((e.clientX - rect.left) / rect.width) * f.fw, y: ((e.clientY - rect.top) / rect.height) * f.fh };
     }
 
-    // Zoom by ratio r, keeping frame point P where it is
-    function zoomAt(r, P) {
-      const m = cur(), f = frame(m);
-      const [zmin, zmax] = zoomRange(f);
+    // Zoom by ratio r, keeping frame point Q where it is
+    function zoomAt(r, Q) {
+      const P = S.photo, m = cur(), f = frame(P, m, S.outW);
+      const [zmin, zmax] = zoomRange(P, f);
       const z = clamp(m.zoom * r, zmin, zmax);
       r = z / m.zoom;
       const cx = f.fw / 2 + m.ox * f.fw, cy = f.fh / 2 + m.oy * f.fh;
       m.zoom = z;
-      m.ox = (P.x + (cx - P.x) * r - f.fw / 2) / f.fw;
-      m.oy = (P.y + (cy - P.y) * r - f.fh / 2) / f.fh;
+      m.ox = (Q.x + (cx - Q.x) * r - f.fw / 2) / f.fw;
+      m.oy = (Q.y + (cy - Q.y) * r - f.fh / 2) / f.fh;
     }
 
     view.addEventListener("pointerdown", (e) => {
@@ -889,12 +1123,11 @@
       view.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, framePoint(e));
       view.classList.add("dragging");
-      gesture = null;
     });
 
     view.addEventListener("pointermove", (e) => {
       if (!pointers.has(e.pointerId)) return;
-      const m = cur(), f = frame(m);
+      const m = cur(), f = frame(S.photo, m, S.outW);
       const prev = pointers.get(e.pointerId);
       const now = framePoint(e);
       if (pointers.size === 1) {
@@ -929,51 +1162,50 @@
 
     view.addEventListener("dblclick", () => {
       if (S.mode === "reel") return;
-      const m = cur(), f = frame(m);
+      const P = S.photo, m = cur(), f = frame(P, m, S.outW);
       m.ox = m.oy = 0;
-      m.zoom = S.mode === "fit" ? containK(f) / coverK(f) : 1;
+      m.zoom = S.mode === "fit" ? containK(P, f) / coverK(P, f) : 1;
       changed();
     });
 
     $$(".tabs button").forEach((b) => (b.onclick = () => {
-      if (S.mode === b.dataset.mode) return;
+      if (S.mode === b.dataset.mode || S.fix) return;
       stopReel();
       S.mode = b.dataset.mode;
       clearResults();
+      $("#saveNote").hidden = true;
       syncPanel();
       draw();
     }));
 
     $$("#shapes button").forEach((b) => (b.onclick = () => {
-      const m = cur();
+      const P = S.photo, m = cur();
       m.shape = b.dataset.shape;
       if (S.mode === "fit") {
-        const f = frame(m);
-        m.zoom = containK(f) / coverK(f);
+        const f = frame(P, m, S.outW);
+        m.zoom = containK(P, f) / coverK(P, f);
       }
       changed();
     }));
 
     $("#zoom").oninput = (e) => {
-      const m = cur(), f = frame(m);
-      const [zmin, zmax] = zoomRange(f);
+      const P = S.photo, m = cur(), f = frame(P, m, S.outW);
+      const [zmin, zmax] = zoomRange(P, f);
       const z = zmin * Math.pow(zmax / zmin, e.target.value / 1000);
       zoomAt(z / m.zoom, { x: f.fw / 2 + m.ox * f.fw, y: f.fh / 2 + m.oy * f.fh });
       changed();
     };
     $("#fitWhole").onclick = () => {
-      const m = cur(), f = frame(m);
-      Object.assign(m, { zoom: containK(f) / coverK(f), ox: 0, oy: 0 });
+      const P = S.photo, m = cur(), f = frame(P, m, S.outW);
+      Object.assign(m, { zoom: containK(P, f) / coverK(P, f), ox: 0, oy: 0 });
       changed();
     };
     $("#fillFrame").onclick = () => {
-      const m = cur();
-      Object.assign(m, { zoom: 1, ox: 0, oy: 0 });
+      Object.assign(cur(), { zoom: 1, ox: 0, oy: 0 });
       changed();
     };
     $("#center").onclick = () => {
-      const m = cur();
-      Object.assign(m, { ox: 0, oy: 0 });
+      Object.assign(cur(), { ox: 0, oy: 0 });
       changed();
     };
 
@@ -996,7 +1228,6 @@
     };
     $("#outW").onchange = (e) => {
       S.outW = Number(e.target.value);
-      blurCache = new Map();
       changed();
     };
 
@@ -1038,7 +1269,7 @@
       if (r.t >= r.dur) r.t = 0;
       let last = performance.now();
       const tick = (now) => {
-        if (!r.playing || S.mode !== "reel") return;
+        if (!r.playing || S.mode !== "reel" || S.view !== "editor") return;
         r.t += (now - last) / 1000;
         last = now;
         if (r.t >= r.dur) r.t = 0;
@@ -1053,29 +1284,29 @@
       requestDraw();
     };
 
-    // ---------- Export ----------
+    // ---------- Rendering files ----------
 
     const pad = (i) => String(i).padStart(2, "0");
     const toBlob = (c, type, q) => new Promise((r) => c.toBlob(r, type, q));
     const fmtSize = (b) => (b > 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.round(b / 1e3) + " KB");
 
-    async function exportImages(btn) {
-      const m = cur(), f = frame(m);
-      clampPos(m, f);
-      const p = place(m, f);
-      const src = level(p.k);
+    async function renderImages(P, m, look, outW, nameOf, onFile) {
+      const f = frame(P, m, outW);
+      clampPos(P, m, f);
+      const p = place(P, m, f);
+      const src = level(P, p.k);
       const files = [];
       for (let i = 0; i < f.n; i++) {
-        btn.textContent = f.n > 1 ? `Rendering ${i + 1} of ${f.n}…` : "Rendering…";
         const c = document.createElement("canvas");
         c.width = f.pw;
         c.height = f.ph;
         const x = c.getContext("2d");
         x.translate(-i * f.pw, 0);
-        paint(x, f, p, src);
+        paint(x, P, f, p, src, look);
         const blob = await toBlob(c, "image/jpeg", JPEG_QUALITY);
-        files.push(new File([blob], `${S.base}_${pad(i + 1)}.jpg`, { type: "image/jpeg" }));
+        files.push(new File([blob], nameOf(i), { type: "image/jpeg" }));
         c.width = c.height = 0;
+        onFile?.(i, f.n);
         await sleep(0);
       }
       return files;
@@ -1091,24 +1322,22 @@
       return null;
     }
 
-    function renderReelFrame(ctx, t) {
-      const p = reelPlace(t);
+    function renderReelFrame(ctx, P, r, t) {
+      const p = reelPlace(P, r, t);
       ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(level(p.k), p.x, p.y, p.dw, p.dh);
+      ctx.drawImage(level(P, p.k), p.x, p.y, p.dw, p.dh);
     }
 
     // Frame by frame with WebCodecs: faster than real time and no dropped frames
-    async function exportReel(btn) {
-      const r = S.reel;
+    async function renderReel(P, r, name, onProgress) {
       const frames = Math.round(r.dur * REEL.fps);
       const c = document.createElement("canvas");
       c.width = REEL.w;
       c.height = REEL.h;
       const ctx = c.getContext("2d");
-      const name = `${S.base}_reel`;
 
       const config = "VideoEncoder" in window ? await pickEncoderConfig() : null;
-      if (!config) return exportReelRecorder(btn, c, ctx, name);
+      if (!config) return recordReel(c, ctx, P, r, name, onProgress);
 
       const { Muxer, ArrayBufferTarget } = await import("./vendor/mp4-muxer.min.mjs");
       const muxer = new Muxer({
@@ -1125,13 +1354,13 @@
       const step = 1e6 / REEL.fps;
       for (let i = 0; i < frames; i++) {
         if (failure) throw failure;
-        renderReelFrame(ctx, (i / (frames - 1)) * r.dur);
+        renderReelFrame(ctx, P, r, (i / (frames - 1)) * r.dur);
         const vf = new VideoFrame(c, { timestamp: Math.round(i * step), duration: Math.round(step) });
         encoder.encode(vf, { keyFrame: i % (REEL.fps * 2) === 0 });
         vf.close();
         while (encoder.encodeQueueSize > 6) await sleep(4);
         if (i % 10 === 0) {
-          btn.textContent = `Rendering ${Math.round((i / frames) * 100)}%…`;
+          onProgress?.(i / frames);
           await sleep(0);
         }
       }
@@ -1139,11 +1368,12 @@
       if (failure) throw failure;
       muxer.finalize();
       encoder.close();
-      return [new File([muxer.target.buffer], name + ".mp4", { type: "video/mp4" })];
+      c.width = c.height = 0;
+      return new File([muxer.target.buffer], name + ".mp4", { type: "video/mp4" });
     }
 
     // Fallback for browsers without WebCodecs: records the canvas in real time
-    async function exportReelRecorder(btn, c, ctx, name) {
+    async function recordReel(c, ctx, P, r, name, onProgress) {
       const mime = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"]
         .find((t) => window.MediaRecorder?.isTypeSupported(t));
       if (!mime) throw new Error("This browser can't make videos. Try Chrome or Safari.");
@@ -1152,15 +1382,15 @@
       const chunks = [];
       rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
       const done = new Promise((res) => (rec.onstop = res));
-      renderReelFrame(ctx, 0);
+      renderReelFrame(ctx, P, r, 0);
       rec.start();
-      const dur = S.reel.dur, t0 = performance.now();
+      const t0 = performance.now();
       await new Promise((res) => {
         const tick = () => {
           const t = (performance.now() - t0) / 1000;
-          renderReelFrame(ctx, Math.min(t, dur));
-          btn.textContent = `Recording ${Math.round((Math.min(t, dur) / dur) * 100)}%…`;
-          if (t >= dur) return res();
+          renderReelFrame(ctx, P, r, Math.min(t, r.dur));
+          onProgress?.(Math.min(t, r.dur) / r.dur);
+          if (t >= r.dur) return res();
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -1168,40 +1398,47 @@
       rec.stop();
       await done;
       const ext = mime.startsWith("video/mp4") ? "mp4" : "webm";
-      return [new File(chunks, `${name}.${ext}`, { type: mime.split(";")[0] })];
+      return new File(chunks, `${name}.${ext}`, { type: mime.split(";")[0] });
     }
+
+    // ---------- Single export ----------
 
     $("#export").onclick = async (e) => {
       const btn = e.currentTarget;
       if (btn.disabled) return;
       btn.disabled = true;
       stopReel();
+      const P = S.photo;
       try {
-        const files = S.mode === "reel" ? await exportReel(btn) : await exportImages(btn);
-        showResults(files);
+        let files;
+        if (S.mode === "reel") {
+          files = [await renderReel(P, S.reel, `${P.base}_reel`, (x) => (btn.textContent = `Rendering ${Math.round(x * 100)}%…`))];
+        } else {
+          files = await renderImages(P, cur(), S, S.outW, (i) => `${P.base}_${pad(i + 1)}.jpg`,
+            (i, n) => (btn.textContent = n > 1 ? `Rendering ${i + 1} of ${n}…` : "Rendering…"));
+        }
+        showResults(files, $("#results"), { strip: true });
       } catch (err) {
         console.error(err);
-        showError(err.message || String(err));
+        showError($("#results"), err.message || String(err));
       } finally {
         btn.disabled = false;
         syncPanel();
       }
     };
 
-    function clearResults() {
-      resultUrls.forEach((u) => URL.revokeObjectURL(u));
-      resultUrls = [];
-      const res = $("#results");
-      res.hidden = true;
-      res.classList.remove("stale");
-      res.innerHTML = "";
+    function clearResults(box = $("#results")) {
+      (box.urls || []).forEach((u) => URL.revokeObjectURL(u));
+      box.urls = [];
+      box.hidden = true;
+      box.classList.remove("stale");
+      box.innerHTML = "";
     }
 
-    function showError(text) {
-      clearResults();
-      const res = $("#results");
-      res.hidden = false;
-      res.innerHTML = `<p class="note warn" style="margin:0">Export failed: ${text}</p>`;
+    function showError(box, text) {
+      clearResults(box);
+      box.hidden = false;
+      box.innerHTML = `<p class="note warn" style="margin:0">Export failed: ${text}</p>`;
     }
 
     function download(file) {
@@ -1214,7 +1451,7 @@
       setTimeout(() => URL.revokeObjectURL(a.href), 60000);
     }
 
-    async function makeZip(files) {
+    async function makeZip(files, zipName) {
       const table = makeZip.table ||= Array.from({ length: 256 }, (_, n) => {
         let c = n;
         for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
@@ -1253,53 +1490,53 @@
       [[0, 0x06054b50, 4], [4, 0, 2], [6, 0, 2], [8, files.length, 2], [10, files.length, 2],
        [12, size, 4], [16, offset, 4], [20, 0, 2]]
         .forEach(([o, v, n]) => (n === 4 ? end.setUint32(o, v, true) : end.setUint16(o, v, true)));
-      return new File([...parts, ...central, end], `${S.base}.zip`, { type: "application/zip" });
+      return new File([...parts, ...central, end], zipName, { type: "application/zip" });
     }
 
-    function showResults(files) {
-      clearResults();
-      const res = $("#results");
-      res.hidden = false;
+    function showResults(files, box, { strip = false, zipName } = {}) {
+      clearResults(box);
+      box.hidden = false;
       const total = files.reduce((s, f) => s + f.size, 0);
-      const isVideo = files[0].type.startsWith("video/");
+      const isVideo = files.length === 1 && files[0].type.startsWith("video/");
       const url = (f) => {
         const u = URL.createObjectURL(f);
-        resultUrls.push(u);
+        box.urls.push(u);
         return u;
       };
 
-      if (isVideo) {
+      if (strip && isVideo) {
         const v = document.createElement("video");
         v.src = url(files[0]);
         v.controls = v.loop = v.muted = v.playsInline = true;
-        res.append(v);
-      } else {
-        const strip = document.createElement("div");
-        strip.className = "strip";
+        box.append(v);
+      } else if (strip) {
+        const row = document.createElement("div");
+        row.className = "strip";
         for (const f of files) {
           const a = document.createElement("a");
           a.href = url(f);
           a.download = f.name;
           a.title = `Download ${f.name}`;
           a.innerHTML = `<img src="${a.href}" alt="${f.name}" />`;
-          strip.append(a);
+          row.append(a);
         }
-        res.append(strip);
+        box.append(row);
       }
 
       const meta = document.createElement("p");
       meta.className = "meta";
-      meta.textContent = files.length > 1
-        ? `${files[0].name} to ${files.at(-1).name} · ${fmtSize(total)}. Swipe the strip to check the joins; tap one to save it.`
-        : `${files[0].name} · ${fmtSize(total)}`;
-      res.append(meta);
-      if (files[0].type === "video/webm") {
-        res.insertAdjacentHTML("beforeend", '<p class="note warn">This browser could only make a WebM video. Instagram may not accept it; try Chrome or Safari.</p>');
+      meta.textContent = !strip
+        ? `${files.length} files · ${fmtSize(total)}`
+        : files.length > 1
+          ? `${files[0].name} to ${files.at(-1).name} · ${fmtSize(total)}. Swipe the strip to check the joins; tap one to save it.`
+          : `${files[0].name} · ${fmtSize(total)}`;
+      box.append(meta);
+      if (files.some((f) => f.type === "video/webm")) {
+        box.insertAdjacentHTML("beforeend", '<p class="note warn">This browser could only make WebM videos. Instagram may not accept them; try Chrome or Safari.</p>');
       }
 
       const btns = document.createElement("div");
       btns.className = "btns";
-      const touch = matchMedia("(pointer: coarse)").matches;
       if (touch && navigator.canShare?.({ files })) {
         const share = document.createElement("button");
         share.className = "btn primary";
@@ -1321,12 +1558,449 @@
         const zip = document.createElement("button");
         zip.className = "btn";
         zip.textContent = "Download ZIP";
-        zip.onclick = async () => download(await makeZip(files));
+        zip.onclick = async () => download(await makeZip(files, zipName || `${S.photo.base}.zip`));
         btns.append(zip);
       }
-      res.append(btns);
-      if (touch) res.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      box.append(btns);
+      if (touch) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
+
+    // ---------- Workflow steps ----------
+    // A step records one mode's settings. Zoom and position are relative, so they carry over to
+    // other photos; a carousel's slide count is "auto" unless a count was picked on purpose.
+
+    function loadSteps() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+        if (Array.isArray(saved?.steps)) return saved.steps.slice(0, MAX_STEPS);
+      } catch {}
+      return [];
+    }
+
+    function saveSteps() {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify({ steps }));
+      } catch {}
+    }
+
+    function captureStep() {
+      const id = Math.random().toString(36).slice(2, 9);
+      if (S.mode === "reel") {
+        const { dur, p0, p1, z0, z1, v, ease } = S.reel;
+        return { id, type: "reel", reel: { dur, p0, p1, z0, z1, v, ease } };
+      }
+      const P = S.photo, m = cur(), f = frame(P, m, S.outW);
+      clampPos(P, m, f);
+      const base = S.mode === "fit" ? "contain" : "cover";
+      const contain = containK(P, f) / coverK(P, f);
+      return {
+        id,
+        type: S.mode,
+        shape: m.shape,
+        n: S.mode === "carousel" ? (m.nPicked ? m.n : "auto") : 1,
+        zoom: round4(base === "contain" ? m.zoom / contain : m.zoom),
+        zoomBase: base,
+        ox: round4(m.ox),
+        oy: round4(m.oy),
+        fill: S.fill, color: S.color, dim: S.dim,
+        outW: S.outW,
+      };
+    }
+
+    const sameStep = (a, b) => JSON.stringify({ ...a, id: 0 }) === JSON.stringify({ ...b, id: 0 });
+
+    // The layout a step gives this photo
+    function resolve(P, step) {
+      const m = { n: step.n === "auto" ? autoN(P, step.shape) : step.n, shape: step.shape, zoom: 1, ox: step.ox, oy: step.oy };
+      const f = frame(P, m, step.outW);
+      m.zoom = step.zoomBase === "contain" ? (step.zoom * containK(P, f)) / coverK(P, f) : step.zoom;
+      clampPos(P, m, f);
+      return m;
+    }
+
+    // What to render for one batch photo and step, including any per-photo adjustment
+    function specFor(entry, P, step) {
+      const o = entry.overrides[step.id];
+      if (step.type === "reel") return { reel: o?.reel || step.reel };
+      return {
+        m: o?.m ? { ...o.m } : resolve(P, step),
+        look: o?.look || { fill: step.fill, color: step.color, dim: step.dim },
+        outW: step.outW,
+      };
+    }
+
+    function stepLabel(step) {
+      const name = TYPE_NAMES[step.type];
+      if (step.type === "reel") {
+        const r = step.reel;
+        const dir = r.p1 > r.p0 ? "left to right" : r.p1 < r.p0 ? "right to left" : "still";
+        return `${name} · ${r.dur} s, ${dir}`;
+      }
+      const shape = step.shape === "auto" ? "Auto" : step.shape;
+      if (step.type === "carousel") return `${name} · ${shape}${step.n === "auto" ? "" : ` · ${step.n} slides`}`;
+      if (step.type === "fit") return `${name} · ${shape} · ${step.fill === "color" ? step.color : step.fill}`;
+      return `${name} · ${shape}`;
+    }
+
+    function renderSteps() {
+      const box = $("#steps");
+      box.innerHTML = "";
+      steps.forEach((step, i) => {
+        const chip = document.createElement("span");
+        chip.className = "step-chip";
+        const load = document.createElement("button");
+        load.innerHTML = `<b>${i + 1}</b>`;
+        load.append(stepLabel(step));
+        load.title = "Load these settings onto this photo";
+        load.onclick = () => applyStepToEditor(step);
+        const x = document.createElement("button");
+        x.className = "x";
+        x.textContent = "×";
+        x.title = `Remove step ${i + 1}`;
+        x.onclick = () => {
+          steps = steps.filter((s) => s !== step);
+          saveSteps();
+          syncPanel();
+        };
+        chip.append(load, x);
+        box.append(chip);
+      });
+    }
+
+    function applyStepToEditor(step) {
+      stopReel();
+      if (step.type === "reel") {
+        Object.assign(S.reel, step.reel, { t: 0 });
+      } else {
+        Object.assign(S.modes[step.type], resolve(S.photo, step), { nPicked: step.n !== "auto" });
+        Object.assign(S, { fill: step.fill, color: step.color, dim: step.dim, outW: step.outW });
+      }
+      S.mode = step.type;
+      clearResults();
+      syncInputs();
+      syncPanel();
+      draw();
+    }
+
+    $("#saveStep").onclick = () => {
+      if (steps.length >= MAX_STEPS) return;
+      const step = captureStep();
+      const note = $("#saveNote");
+      const dup = steps.findIndex((s) => sameStep(s, step));
+      note.hidden = false;
+      if (dup >= 0) {
+        note.textContent = `Same as step ${dup + 1}, so nothing was added.`;
+        return;
+      }
+      steps.push(step);
+      saveSteps();
+      syncPanel();
+      note.hidden = false;
+      note.textContent = `Saved as step ${steps.length}. Change any setting to save another.`;
+    };
+
+    $("#runWf").onclick = $("#wfBtn").onclick = $("#startBatch").onclick = () => showView("batch");
+    $("#backEditor").onclick = () => showView(S.photo ? "editor" : "start");
+
+    // ---------- Batch ----------
+
+    async function addPhotos(fileList) {
+      const files = [...fileList].filter(isImage);
+      const room = MAX_PHOTOS - B.photos.length;
+      const warn = $("#batchWarn");
+      warn.hidden = files.length <= room;
+      if (files.length > room) warn.textContent = `A batch holds up to ${MAX_PHOTOS} photos, so ${files.length - room} were left out.`;
+      const taken = new Set(B.photos.map((e) => e.base));
+      const added = [];
+      for (const file of files.slice(0, Math.max(0, room))) {
+        let base = baseName(file), k = 2;
+        while (taken.has(base)) base = `${baseName(file)}-${k++}`;
+        taken.add(base);
+        const entry = { id: B.nextId++, file, base, thumb: null, overrides: {}, failed: false };
+        B.photos.push(entry);
+        added.push(entry);
+      }
+      clearResults($("#batchResults"));
+      renderBatch();
+      for (const entry of added) {
+        try {
+          entry.thumb = await loadPhoto(entry.file, THUMB_PIXELS);
+        } catch {
+          entry.failed = true;
+        }
+        renderRow(entry);
+        updateEstimate();
+      }
+    }
+
+    function renderBatch() {
+      $("#batchSteps").innerHTML = steps.map((s) => `<li>${stepLabel(s)}</li>`).join("") || "<li>No steps yet. Save some in the editor.</li>";
+      $("#photoCount").textContent = `${B.photos.length} of ${MAX_PHOTOS} photos`;
+      $("#batchEmpty").hidden = B.photos.length > 0;
+      $("#gridWrap").hidden = $("#gridHint").hidden = !B.photos.length;
+      const grid = $("#grid");
+      grid.innerHTML = "";
+      const head = grid.insertRow();
+      head.insertCell().outerHTML = "<th>Photo</th>";
+      steps.forEach((s, i) => (head.insertCell().outerHTML = `<th>${i + 1} · ${TYPE_NAMES[s.type]}</th>`));
+      for (const entry of B.photos) {
+        const row = grid.insertRow();
+        row.dataset.id = entry.id;
+        renderRow(entry);
+      }
+      updateEstimate();
+    }
+
+    function renderRow(entry) {
+      const row = $(`#grid tr[data-id="${entry.id}"]`);
+      if (!row) return;
+      row.innerHTML = "";
+      const name = row.insertCell();
+      name.className = "name";
+      name.textContent = entry.base;
+      const x = document.createElement("button");
+      x.className = "x";
+      x.textContent = "×";
+      x.title = "Remove this photo";
+      x.onclick = () => {
+        releasePhoto(entry.thumb);
+        B.photos = B.photos.filter((e) => e !== entry);
+        clearResults($("#batchResults"));
+        renderBatch();
+      };
+      name.append(x);
+      for (const step of steps) {
+        const td = row.insertCell();
+        if (entry.failed) {
+          td.innerHTML = '<span class="loading">Can\'t open this file</span>';
+          continue;
+        }
+        if (!entry.thumb) {
+          td.innerHTML = '<span class="loading">Loading…</span>';
+          continue;
+        }
+        const cell = document.createElement("button");
+        cell.className = "cell";
+        cell.title = "Adjust for this photo only";
+        cell.append(thumbnail(entry, step));
+        if (entry.overrides[step.id]) cell.insertAdjacentHTML("beforeend", '<span class="badge">Adjusted</span>');
+        cell.onclick = () => openFix(entry, step);
+        td.append(cell);
+      }
+    }
+
+    // A small preview of one photo through one step
+    function thumbnail(entry, step) {
+      const P = entry.thumb, spec = specFor(entry, P, step);
+      const H = 110, dpr = devicePixelRatio || 1;
+      const c = document.createElement("canvas");
+      const x = c.getContext("2d");
+      if (step.type === "reel") {
+        // Start and end frames side by side
+        const w = Math.round((H * REEL.w) / REEL.h), gap = 4;
+        c.width = (w * 2 + gap) * dpr;
+        c.height = H * dpr;
+        c.style.width = w * 2 + gap + "px";
+        c.style.height = H + "px";
+        [0, spec.reel.dur].forEach((t, i) => {
+          const s = (w / REEL.w) * dpr;
+          x.setTransform(s, 0, 0, s, i * (w + gap) * dpr, 0);
+          x.save();
+          x.beginPath();
+          x.rect(0, 0, REEL.w, REEL.h);
+          x.clip();
+          const p = reelPlace(P, spec.reel, t);
+          x.imageSmoothingQuality = "high";
+          x.drawImage(level(P, p.k * s), p.x, p.y, p.dw, p.dh);
+          x.restore();
+        });
+        return c;
+      }
+      const f = frame(P, spec.m, spec.outW);
+      const s = Math.min(H / f.fh, 300 / f.fw);
+      const cw = Math.round(f.fw * s), ch = Math.round(f.fh * s);
+      c.width = cw * dpr;
+      c.height = ch * dpr;
+      c.style.width = cw + "px";
+      c.style.height = ch + "px";
+      x.setTransform(s * dpr, 0, 0, s * dpr, 0, 0);
+      const p = place(P, spec.m, f);
+      paint(x, P, f, p, level(P, p.k * s * dpr), spec.look);
+      x.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cutLines(x, f.n, f.pw * s, ch, false);
+      return c;
+    }
+
+    // Rough output size and time, so a batch too big for the device shows up before it runs
+    function estimate() {
+      let files = 0, bytes = 0, secs = 0;
+      for (const entry of B.photos) {
+        if (!entry.thumb) continue;
+        secs += 0.4;
+        for (const step of steps) {
+          const spec = specFor(entry, entry.thumb, step);
+          if (step.type === "reel") {
+            files += 1;
+            bytes += spec.reel.dur * 1.5e6;
+            secs += spec.reel.dur * 0.4;
+          } else {
+            const f = frame(entry.thumb, spec.m, spec.outW);
+            files += f.n;
+            bytes += f.n * f.pw * f.ph * 0.25;
+            secs += f.n * 0.15;
+          }
+        }
+      }
+      if (touch) secs *= 3;
+      return { files, bytes, secs };
+    }
+
+    function updateEstimate() {
+      const ready = B.photos.filter((e) => e.thumb).length;
+      const { files, bytes, secs } = estimate();
+      const run = $("#runExport");
+      run.disabled = B.busy || !ready || !steps.length;
+      $("#photoCount").textContent = `${B.photos.length} of ${MAX_PHOTOS} photos`;
+      $("#estimate").textContent = files
+        ? `≈ ${files} files · ≈ ${fmtSize(bytes)} · about ${secs < 90 ? Math.max(5, Math.round(secs / 5) * 5) + " s" : Math.round(secs / 60) + " min"}`
+        : "";
+      const warn = $("#batchWarn");
+      if (touch && !window.showDirectoryPicker && bytes > 150e6) {
+        warn.hidden = false;
+        warn.textContent = "This batch may be too big for a phone to hold at once. Try fewer photos or fewer Reel steps.";
+      }
+    }
+
+    $("#addPhotos").onclick = () => $("#files").click();
+    $("#files").onchange = (e) => {
+      addPhotos(e.target.files);
+      e.target.value = "";
+    };
+
+    async function writeTo(dir, file) {
+      const handle = await dir.getFileHandle(file.name, { create: true });
+      const w = await handle.createWritable();
+      await w.write(file);
+      await w.close();
+    }
+
+    // One photo at a time at full size, released before the next, so memory stays flat.
+    // Where the browser allows it, files go straight into a folder.
+    $("#runExport").onclick = async () => {
+      if (B.busy) return;
+      let dir = null;
+      if (window.showDirectoryPicker) {
+        try {
+          dir = await showDirectoryPicker({ id: "seamless", mode: "readwrite" });
+        } catch {
+          return;
+        }
+      }
+      const btn = $("#runExport");
+      const box = $("#batchResults");
+      B.busy = true;
+      btn.disabled = true;
+      clearResults(box);
+      const total = estimate().files;
+      const out = [];
+      let done = 0;
+      const progress = (extra = 0) => (btn.textContent = `Exporting ${Math.min(total, done + extra)} of ${total}…`);
+      try {
+        for (const entry of B.photos) {
+          if (entry.failed || !entry.thumb) continue;
+          progress();
+          const P = await loadPhoto(entry.file, MAX_PIXELS);
+          for (const [si, step] of steps.entries()) {
+            const spec = specFor(entry, P, step);
+            const prefix = `${entry.base}_${si + 1}-${step.type}`;
+            const files = step.type === "reel"
+              ? [await renderReel(P, spec.reel, prefix, () => progress())]
+              : await renderImages(P, spec.m, spec.look, spec.outW, (i) => `${prefix}_${pad(i + 1)}.jpg`, (i) => progress(i + 1));
+            for (const file of files) {
+              if (dir) await writeTo(dir, file);
+              else out.push(file);
+            }
+            done += files.length;
+          }
+          releasePhoto(P);
+        }
+        box.hidden = false;
+        if (dir) {
+          box.innerHTML = `<p class="meta">Saved ${done} files to the folder “${dir.name}”.</p>`;
+        } else {
+          showResults(out, box, { zipName: "seamless-batch.zip" });
+        }
+      } catch (err) {
+        console.error(err);
+        showError(box, err.message || String(err));
+      } finally {
+        B.busy = false;
+        btn.textContent = "Export";
+        updateEstimate();
+      }
+    };
+
+    // ---------- Adjusting one batch photo ----------
+
+    async function openFix(entry, step) {
+      let P;
+      try {
+        P = await loadPhoto(entry.file, MAX_PIXELS);
+      } catch {
+        return;
+      }
+      const stash = {
+        photo: S.photo, mode: S.mode, modes: structuredClone(S.modes), reel: { ...S.reel },
+        fill: S.fill, color: S.color, dim: S.dim, outW: S.outW,
+      };
+      S.photo = P;
+      S.fix = { entry, step, stash };
+      const spec = specFor(entry, P, step);
+      if (step.type === "reel") {
+        Object.assign(S.reel, spec.reel, { t: 0, playing: false });
+      } else {
+        Object.assign(S.modes[step.type], spec.m, { nPicked: step.n !== "auto" || !!entry.overrides[step.id] });
+        Object.assign(S, spec.look, { outW: spec.outW });
+      }
+      S.mode = step.type;
+      $("#fixName").textContent = entry.base;
+      $("#fixStep").textContent = `${steps.indexOf(step) + 1} (${stepLabel(step)})`;
+      $("#fixReset").hidden = !entry.overrides[step.id];
+      clearResults();
+      syncInputs();
+      showView("editor");
+    }
+
+    function closeFix() {
+      const { entry, stash } = S.fix;
+      releasePhoto(S.photo);
+      Object.assign(S, {
+        photo: stash.photo, mode: stash.mode, modes: stash.modes,
+        fill: stash.fill, color: stash.color, dim: stash.dim, outW: stash.outW, fix: null,
+      });
+      Object.assign(S.reel, stash.reel, { playing: false });
+      syncInputs();
+      showView("batch");
+      return entry;
+    }
+
+    $("#fixApply").onclick = () => {
+      const { entry, step } = S.fix;
+      if (step.type === "reel") {
+        const { dur, p0, p1, z0, z1, v, ease } = S.reel;
+        entry.overrides[step.id] = { reel: { dur, p0, p1, z0, z1, v, ease } };
+      } else {
+        const { n, shape, zoom, ox, oy } = cur();
+        entry.overrides[step.id] = { m: { n, shape, zoom, ox, oy }, look: { fill: S.fill, color: S.color, dim: S.dim } };
+      }
+      closeFix();
+    };
+    $("#fixCancel").onclick = () => closeFix();
+    $("#fixReset").onclick = () => {
+      const { entry, step } = S.fix;
+      delete entry.overrides[step.id];
+      closeFix();
+    };
 
     // ---------- File input ----------
 
@@ -1353,15 +2027,18 @@
       e.preventDefault();
       dragDepth = 0;
       document.body.classList.remove("dragging");
-      load(e.dataTransfer.files[0]);
+      if (S.view === "batch") addPhotos(e.dataTransfer.files);
+      else if (!S.fix) load(e.dataTransfer.files[0]);
     });
     addEventListener("paste", (e) => {
-      const item = [...e.clipboardData.items].find((i) => i.type.startsWith("image/"));
-      if (item) load(item.getAsFile());
+      const files = [...e.clipboardData.items].filter((i) => i.type.startsWith("image/")).map((i) => i.getAsFile());
+      if (!files.length) return;
+      if (S.view === "batch") addPhotos(files);
+      else if (!S.fix) load(files[0]);
     });
     addEventListener("resize", requestDraw);
 
-    syncPanel();
+    syncHeader();
   </script>
 </body>
 </html>
