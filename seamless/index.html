@@ -332,6 +332,27 @@
       .panel { border-left: 0; border-top: 1px solid var(--line); padding: 16px 16px 40px; }
       .top { padding: 0 16px; gap: 8px; }
       .top .by, .wide-only { display: none; }
+
+      /* Batch grid stacks: one card per photo, steps listed under it */
+      .batch { padding: 16px 16px 40px; }
+      .grid-wrap { overflow-x: visible; }
+      .grid, .grid tbody, .grid tr, .grid td { display: block; }
+      .grid { border-spacing: 0; }
+      .grid tr.head { display: none; }
+      .grid tr { padding: 16px 0; border-bottom: 1px solid var(--line); }
+      .grid td { padding: 0; margin-top: 12px; }
+      .grid td.name { max-width: none; margin-top: 0; font-weight: 600; }
+      .grid td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 6px;
+        color: var(--faint);
+        font-size: .6875rem;
+        font-weight: 600;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+      .cell { display: inline-block; }
       .narrow-only { display: inline; }
     }
   </style>
@@ -376,7 +397,7 @@
         <button class="btn primary" id="runExport" disabled>Export</button>
       </div>
       <p class="note warn" id="batchWarn" hidden></p>
-      <div class="batch-empty" id="batchEmpty">Add up to 20 photos. Each one goes through every step.</div>
+      <div class="batch-empty" id="batchEmpty">Add up to 10 photos. Each one goes through every step.</div>
       <div class="grid-wrap" id="gridWrap" hidden><table class="grid" id="grid"></table></div>
       <p class="hint" id="gridHint" hidden>Click a result to adjust it for that photo only.</p>
       <div class="results" id="batchResults" hidden></div>
@@ -555,10 +576,11 @@
     const THUMB_PIXELS = 2e6;  // batch previews only need a small copy
     const JPEG_QUALITY = 0.95;
     const REEL = { w: 1080, h: 1920, fps: 30 };
-    const MAX_STEPS = 8;
-    const MAX_PHOTOS = 20;
+    const MAX_STEPS = 5;
+    const MAX_PHOTOS = 10;
     const STORE_KEY = "seamless.workflow.v1";
     const touch = matchMedia("(pointer: coarse)").matches;
+    const narrowMQ = matchMedia("(max-width: 860px)");
 
     const LEDES = {
       carousel: "Split a wide photo into slides. People swipe through them and see one continuous picture.",
@@ -1741,6 +1763,7 @@
       const grid = $("#grid");
       grid.innerHTML = "";
       const head = grid.insertRow();
+      head.className = "head";
       head.insertCell().outerHTML = "<th>Photo</th>";
       steps.forEach((s, i) => (head.insertCell().outerHTML = `<th>${i + 1} · ${TYPE_NAMES[s.type]}</th>`));
       for (const entry of B.photos) {
@@ -1769,8 +1792,9 @@
         renderBatch();
       };
       name.append(x);
-      for (const step of steps) {
+      for (const [i, step] of steps.entries()) {
         const td = row.insertCell();
+        td.dataset.label = `${i + 1} · ${stepLabel(step)}`;
         if (entry.failed) {
           td.innerHTML = '<span class="loading">Can\'t open this file</span>';
           continue;
@@ -1790,9 +1814,12 @@
     }
 
     // A small preview of one photo through one step
+    // On phones the grid stacks vertically, so previews get the full width
     function thumbnail(entry, step) {
       const P = entry.thumb, spec = specFor(entry, P, step);
-      const H = 110, dpr = devicePixelRatio || 1;
+      const narrow = narrowMQ.matches;
+      const H = narrow ? 200 : 110, maxW = narrow ? Math.min(560, ($("#gridWrap").clientWidth || innerWidth - 32) - 2) : 300;
+      const dpr = devicePixelRatio || 1;
       const c = document.createElement("canvas");
       const x = c.getContext("2d");
       if (step.type === "reel") {
@@ -1817,7 +1844,7 @@
         return c;
       }
       const f = frame(P, spec.m, spec.outW);
-      const s = Math.min(H / f.fh, 300 / f.fw);
+      const s = Math.min(H / f.fh, maxW / f.fw);
       const cw = Math.round(f.fw * s), ch = Math.round(f.fh * s);
       c.width = cw * dpr;
       c.height = ch * dpr;
@@ -2037,6 +2064,7 @@
       else if (!S.fix) load(files[0]);
     });
     addEventListener("resize", requestDraw);
+    narrowMQ.addEventListener("change", () => S.view === "batch" && renderBatch());
 
     syncHeader();
   </script>
