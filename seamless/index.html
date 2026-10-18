@@ -245,7 +245,7 @@
 
     .start-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
-    /* Workflow strip in the panel */
+    /* Batch steps in the panel */
     .steps { display: flex; flex-wrap: wrap; gap: 6px; }
     .step-chip {
       display: inline-flex;
@@ -279,6 +279,8 @@
     .batch-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
     .batch-head h2 { margin: 0 0 6px; font-family: "Space Grotesk", sans-serif; font-size: 1.375rem; }
     .step-list { margin: 0; padding-left: 20px; color: var(--muted); font-size: .875rem; }
+    .step-list .x { margin-left: 6px; padding: 0 4px; border: 0; background: none; color: var(--faint); }
+    .step-list .x:hover { color: var(--text); }
     .batch-bar {
       position: sticky;
       top: 0;
@@ -376,7 +378,7 @@
         <p class="lede" id="loadError" hidden></p>
         <div class="start-btns">
           <button class="btn primary" id="choose">Choose a photo</button>
-          <button class="btn" id="startBatch" hidden>Run saved workflow</button>
+          <button class="btn" id="startBatch" hidden>Open batch</button>
         </div>
       </div>
     </section>
@@ -384,7 +386,7 @@
     <section class="batch" id="batch" hidden>
       <div class="batch-head">
         <div>
-          <h2>Workflow</h2>
+          <h2>Batch</h2>
           <ol class="step-list" id="batchSteps"></ol>
         </div>
         <button class="btn" id="backEditor">Back to editor</button>
@@ -544,13 +546,13 @@
           </div>
           <p class="note" data-for="reel">1080 × 1920 MP4, 30 fps, no sound. Add music in Instagram.</p>
           <button class="btn primary wide" id="export" style="margin-top:12px">Export</button>
-          <button class="btn wide" id="saveStep" style="margin-top:8px">+ Save as step</button>
+          <button class="btn wide" id="saveStep" style="margin-top:8px">+ Add to batch</button>
           <p class="note" id="saveNote" hidden></p>
           <div class="results" id="results" hidden></div>
         </div>
 
         <div class="group" id="wfGroup" hidden>
-          <h3>Workflow</h3>
+          <h3>Batch</h3>
           <div class="steps" id="steps"></div>
           <button class="btn primary wide" id="runWf" style="margin-top:10px">Run on photos…</button>
           <p class="note">Click a step to load its settings onto this photo.</p>
@@ -1038,7 +1040,7 @@
       $("#fixbar").hidden = !fixing;
       $("#export").closest(".group").hidden = fixing;
       $("#saveStep").disabled = steps.length >= MAX_STEPS;
-      $("#saveStep").textContent = steps.length >= MAX_STEPS ? `Workflow is full (${MAX_STEPS} steps)` : "+ Save as step";
+      $("#saveStep").textContent = steps.length >= MAX_STEPS ? `Batch is full (${MAX_STEPS} steps)` : "+ Add to batch";
       $("#wfGroup").hidden = fixing || !steps.length;
       renderSteps();
       syncHeader();
@@ -1060,7 +1062,7 @@
     function syncHeader() {
       const wf = $("#wfBtn");
       wf.hidden = !steps.length || S.view !== "editor" || !!S.fix;
-      wf.innerHTML = `Workflow<span class="wide-only"> · ${steps.length} step${steps.length === 1 ? "" : "s"}</span><span class="narrow-only"> (${steps.length})</span>`;
+      wf.innerHTML = `Batch<span class="wide-only"> · ${steps.length} step${steps.length === 1 ? "" : "s"}</span><span class="narrow-only"> (${steps.length})</span>`;
       $("#change").hidden = S.view !== "editor" || !!S.fix;
       $("#startBatch").hidden = !steps.length;
     }
@@ -1587,7 +1589,7 @@
       if (touch) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    // ---------- Workflow steps ----------
+    // ---------- Batch steps ----------
     // A step records one mode's settings. Zoom and position are relative, so they carry over to
     // other photos; a carousel's slide count is "auto" unless a count was picked on purpose.
 
@@ -1603,6 +1605,13 @@
       try {
         localStorage.setItem(STORE_KEY, JSON.stringify({ steps }));
       } catch {}
+    }
+
+    function removeStep(step) {
+      steps = steps.filter((s) => s !== step);
+      saveSteps();
+      for (const entry of B.photos) delete entry.overrides[step.id];
+      clearResults($("#batchResults"));
     }
 
     function captureStep() {
@@ -1680,8 +1689,7 @@
         x.textContent = "×";
         x.title = `Remove step ${i + 1}`;
         x.onclick = () => {
-          steps = steps.filter((s) => s !== step);
-          saveSteps();
+          removeStep(step);
           syncPanel();
         };
         chip.append(load, x);
@@ -1718,7 +1726,7 @@
       saveSteps();
       syncPanel();
       note.hidden = false;
-      note.textContent = `Saved as step ${steps.length}. Change any setting to save another.`;
+      note.textContent = `Added as step ${steps.length}. Change any setting to add another.`;
     };
 
     $("#runWf").onclick = $("#wfBtn").onclick = $("#startBatch").onclick = () => showView("batch");
@@ -1756,7 +1764,22 @@
     }
 
     function renderBatch() {
-      $("#batchSteps").innerHTML = steps.map((s) => `<li>${stepLabel(s)}</li>`).join("") || "<li>No steps yet. Save some in the editor.</li>";
+      const list = $("#batchSteps");
+      list.innerHTML = steps.length ? "" : "<li>No steps yet. Add some from the editor.</li>";
+      for (const step of steps) {
+        const li = document.createElement("li");
+        li.append(stepLabel(step));
+        const x = document.createElement("button");
+        x.className = "x";
+        x.textContent = "×";
+        x.title = "Remove this step";
+        x.onclick = () => {
+          removeStep(step);
+          renderBatch();
+        };
+        li.append(x);
+        list.append(li);
+      }
       $("#photoCount").textContent = `${B.photos.length} of ${MAX_PHOTOS} photos`;
       $("#batchEmpty").hidden = B.photos.length > 0;
       $("#gridWrap").hidden = $("#gridHint").hidden = !B.photos.length;
