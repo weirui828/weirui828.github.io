@@ -1358,7 +1358,7 @@
         <p class="journey-sub" id="journey-sub">The places I've called home</p>
       </div>
       <div class="globe-wrap">
-        <canvas id="globe" role="img" aria-label="A globe tracing my moves: Suiping, Zhuhai, Guangzhou, Fairfield, New York City, Stamford, Boston, San Diego, and San Francisco."></canvas>
+        <canvas id="globe" role="img" aria-label="A globe tracing my moves: Suiping, Zhuhai, Guangzhou, Fairfield, New York City, Stamford, Boston, San Diego, San Francisco, and next, Sydney."></canvas>
         <div class="globe-status" id="globe-status">Loading the globe…</div>
         <button class="replay" type="button" id="replay" aria-label="Replay the journey" title="Replay the journey"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
         <div class="map-zoom" id="map-zoom" hidden>
@@ -1582,7 +1582,6 @@
         { name: "San Diego", region: "California, USA", country: "USA", coord: [-117.16, 32.72] },
         { name: "San Francisco", region: "California, USA", country: "USA", coord: [-122.42, 37.77] },
       ];
-      const LEGS = CITIES.length - 1;
       const NOW = 8;
 
       // Places I've visited: [name, region, country, [lon, lat], ski trip?]
@@ -1707,10 +1706,14 @@
         ["Sydney", "Australia", "Australia", [151.21, -33.87]],
       ].map(([name, region, country, coord, ski]) => ({ name, region, country, coord, ski: !!ski }));
 
-      // Everything shown on the flat map: visited (gold), lived (cyan), and the next move (violet ring)
+      // The next move is a place I've already visited, so it stays in VISITED; the globe's journey still ends there
+      CITIES.push(VISITED.find(p => p.name === "Sydney"));
+      const LEGS = CITIES.length - 1;
+
+      // Everything shown on the flat map: visited (gold) and lived (cyan); the next move shows there as visited
       const PLACES = [
         ...VISITED.map(p => ({ ...p, kind: "visited" })),
-        ...CITIES.map((c, i) => ({ ...c, kind: i === NOW + 1 ? "next" : "lived" })),
+        ...CITIES.slice(0, NOW + 1).map(c => ({ ...c, kind: "lived" })),
       ];
       const been = [...VISITED, ...CITIES.slice(0, NOW + 1)];
       const STATS = `${been.length} places · ${new Set(been.map(p => p.country)).size} countries & regions`;
