@@ -549,11 +549,6 @@
           </div>
         </div>
 
-        <div class="group" data-for="carousel fit crop">
-          <h3>Guides</h3>
-          <label class="check"><input type="checkbox" id="thirds" /> Rule-of-thirds lines</label>
-        </div>
-
         <div class="group" data-for="reel">
           <h3>Pan</h3>
           <div class="row">
@@ -670,8 +665,8 @@
 
       <section data-help="crop" hidden>
         <p>Frame a tall version of the photo for Instagram, and keep the full photo for your website.</p>
-        <figure><img src="help/crop.webp" width="1400" height="712" alt="A 4:5 crop of a photo with rule-of-thirds lines" loading="lazy" /></figure>
-        <p>Choose a shape, then drag and zoom until the framing looks right. Turn on <b>Rule-of-thirds lines</b> under Guides to help place the horizon or your subject. The panel's info line shows how much of the photo the crop keeps.</p>
+        <figure><img src="help/crop.webp" width="1400" height="712" alt="A 4:5 crop of a sunset photo" loading="lazy" /></figure>
+        <p>Choose a shape, then drag and zoom until the framing looks right. The line under the photo shows how much of it the crop keeps.</p>
       </section>
 
       <section data-help="reel" hidden>
@@ -756,7 +751,7 @@
         fit: { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 },
         crop: { n: 1, shape: "4:5", zoom: 1, ox: 0, oy: 0 },
       },
-      fill: "blur", color: "#1a1a1a", dim: 0.2, outW: 1080, thirds: false,
+      fill: "blur", color: "#1a1a1a", dim: 0.2, outW: 1080,
       reel: { dur: 8, p0: 0, p1: 1, z0: 1, z1: 1.06, v: 0.5, ease: true, t: 0, playing: false },
       fix: null,   // { entry, step, stash } while adjusting one batch photo
     };
@@ -1041,18 +1036,6 @@
       // Overlays in CSS pixels
       vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const pw = f.pw * vs, ph = f.ph * vs;
-      if (S.thirds) {
-        vctx.strokeStyle = "rgba(255,255,255,.35)";
-        vctx.lineWidth = 1;
-        vctx.beginPath();
-        for (let i = 0; i < f.n; i++) {
-          for (const t of [1 / 3, 2 / 3]) {
-            vctx.moveTo(i * pw + t * pw, 0); vctx.lineTo(i * pw + t * pw, ph);
-            vctx.moveTo(i * pw, t * ph); vctx.lineTo(i * pw + pw, t * ph);
-          }
-        }
-        vctx.stroke();
-      }
       if (f.n > 1) {
         cutLines(vctx, f.n, pw, ph, true);
         vctx.font = "600 11px Inter, system-ui, sans-serif";
@@ -1152,7 +1135,6 @@
       set("dim", Math.round(S.dim * 100), Math.round(S.dim * 100) + "%");
       $("#color").value = S.color;
       $("#outW").value = String(S.outW);
-      $("#thirds").checked = S.thirds;
     }
 
     function syncPanel() {
@@ -1387,10 +1369,6 @@
     $("#color").oninput = (e) => {
       S.color = e.target.value;
       changed();
-    };
-    $("#thirds").onchange = (e) => {
-      S.thirds = e.target.checked;
-      requestDraw();
     };
     $("#outW").onchange = (e) => {
       S.outW = Number(e.target.value);
