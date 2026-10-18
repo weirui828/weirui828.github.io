@@ -396,9 +396,11 @@
         <span class="note" id="photoCount"></span>
         <span class="spacer"></span>
         <span class="note" id="estimate"></span>
+        <button class="btn" id="runFolder" hidden disabled>Save to folder…</button>
         <button class="btn primary" id="runExport" disabled>Export</button>
       </div>
       <p class="note warn" id="batchWarn" hidden></p>
+      <p class="note" id="folderHint" hidden>Chrome won't save straight into your home folder, Downloads, Desktop or Documents. In the picker, make a new folder inside one of them (New Folder) and choose that one.</p>
       <div class="batch-empty" id="batchEmpty">Add up to 10 photos. Each one goes through every step.</div>
       <div class="grid-wrap" id="gridWrap" hidden><table class="grid" id="grid"></table></div>
       <p class="hint" id="gridHint" hidden>Click a result to adjust it for that photo only.</p>
@@ -1908,8 +1910,10 @@
     function updateEstimate() {
       const ready = B.photos.filter((e) => e.thumb).length;
       const { files, bytes, secs } = estimate();
-      const run = $("#runExport");
-      run.disabled = B.busy || !ready || !steps.length;
+      const blocked = B.busy || !ready || !steps.length;
+      $("#runExport").disabled = blocked;
+      $("#runFolder").disabled = blocked;
+      $("#runFolder").hidden = !window.showDirectoryPicker;
       $("#photoCount").textContent = `${B.photos.length} of ${MAX_PHOTOS} photos`;
       $("#estimate").textContent = files
         ? `≈ ${files} files · ≈ ${fmtSize(bytes)} · about ${secs < 90 ? Math.max(5, Math.round(secs / 5) * 5) + " s" : Math.round(secs / 60) + " min"}`
@@ -1934,22 +1938,32 @@
       await w.close();
     }
 
-    // One photo at a time at full size, released before the next, so memory stays flat.
-    // Where the browser allows it, files go straight into a folder.
-    $("#runExport").onclick = async () => {
+    $("#runExport").onclick = (e) => runBatch(null, e.currentTarget);
+
+    // Chrome refuses some folders (Downloads, Desktop…) inside its own picker; when the picker
+    // closes without a folder, explain what does work
+    $("#runFolder").onclick = async (e) => {
       if (B.busy) return;
-      let dir = null;
-      if (window.showDirectoryPicker) {
-        try {
-          dir = await showDirectoryPicker({ id: "seamless", mode: "readwrite" });
-        } catch {
-          return;
-        }
+      const btn = e.currentTarget;
+      let dir;
+      try {
+        dir = await showDirectoryPicker({ id: "seamless", mode: "readwrite", startIn: "downloads" });
+      } catch {
+        $("#folderHint").hidden = false;
+        return;
       }
-      const btn = $("#runExport");
+      $("#folderHint").hidden = true;
+      runBatch(dir, btn);
+    };
+
+    // One photo at a time at full size, released before the next, so memory stays flat.
+    // With a folder, files are written as they're made; otherwise they're collected for a ZIP.
+    async function runBatch(dir, btn) {
+      if (B.busy) return;
+      const label = btn.textContent;
       const box = $("#batchResults");
       B.busy = true;
-      btn.disabled = true;
+      updateEstimate();
       clearResults(box);
       const total = estimate().files;
       const out = [];
@@ -1985,10 +1999,10 @@
         showError(box, err.message || String(err));
       } finally {
         B.busy = false;
-        btn.textContent = "Export";
+        btn.textContent = label;
         updateEstimate();
       }
-    };
+    }
 
     // ---------- Adjusting one batch photo ----------
 
