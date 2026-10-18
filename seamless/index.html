@@ -15,6 +15,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 
+  <script>
+    try {
+      const t = localStorage.getItem("seamless.theme");
+      if (t && t !== "violet") document.documentElement.dataset.theme = t;
+    } catch {}
+  </script>
   <style>
     /* Neutral greys so the UI doesn't tint how the photo looks */
     :root {
@@ -31,6 +37,12 @@
       --warn: #fbbf24;
       --radius: 10px;
     }
+
+    /* Accent themes, from the Weiniverse colors; violet is the default */
+    :root[data-theme="cyan"] { --accent: #22d3ee; --accent-ink: #062a31; }
+    :root[data-theme="gold"] { --accent: #fbbf24; --accent-ink: #2e2004; }
+    :root[data-theme="rose"] { --accent: #f472b6; --accent-ink: #330a20; }
+    :root[data-theme="emerald"] { --accent: #34d399; --accent-ink: #052b1e; }
 
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
@@ -96,7 +108,7 @@
       text-align: center;
       transition: border-color .15s, background .15s;
     }
-    body.dragging .drop { border-color: var(--accent); background: rgba(167, 139, 250, .06); }
+    body.dragging .drop { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
     .drop h1 { margin: 0 0 18px; font-family: "Space Grotesk", sans-serif; font-size: 2rem; letter-spacing: -.02em; }
     .drop .lede { margin: -6px 0 18px; color: var(--warn); }
 
@@ -172,7 +184,7 @@
       font-weight: 500;
     }
     .seg button:hover { background: var(--raise-hover); }
-    .seg button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: rgba(167, 139, 250, .1); }
+    .seg button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
     .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
     .chip {
@@ -189,7 +201,7 @@
     .chip:hover { background: var(--raise-hover); }
     .chip b { font-size: .9375rem; font-weight: 600; }
     .chip span { margin-top: 2px; color: var(--muted); font-size: .6875rem; }
-    .chip[aria-pressed="true"] { border-color: var(--accent); background: rgba(167, 139, 250, .1); }
+    .chip[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
     .chip[aria-pressed="true"] b { color: var(--accent); }
     .chip.best::after {
       content: "";
@@ -261,7 +273,21 @@
     .help-head h2 { flex: 1; margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.25rem; }
     .help-close { width: 36px; padding: 6px 0; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 1.5rem; line-height: 1; }
     .help-close:hover { background: var(--raise); color: var(--text); }
-    .help-tabs { grid-template-columns: repeat(5, 1fr); margin: 14px 24px 0; }
+    .help-tabs { grid-template-columns: repeat(6, 1fr); margin: 14px 24px 0; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px 8px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--raise);
+      font-size: .875rem;
+    }
+    .swatch:hover { background: var(--raise-hover); }
+    .swatch i { width: 22px; height: 22px; border-radius: 50%; background: var(--c); }
+    .swatch[aria-pressed="true"] { border-color: var(--c); box-shadow: 0 0 0 1px var(--c); }
     .help-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 24px 24px; }
     .help-body section > p:first-child { margin-top: 18px; color: var(--muted); }
     .help-body figure { margin: 16px 0 6px; }
@@ -298,7 +324,7 @@
       padding: 12px;
       border: 1px solid var(--accent);
       border-radius: var(--radius);
-      background: rgba(167, 139, 250, .08);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
       font-size: .8125rem;
     }
     .fixbar p { margin: 0; }
@@ -607,6 +633,7 @@
       <button role="tab" data-help="crop">Crop</button>
       <button role="tab" data-help="reel">Reel</button>
       <button role="tab" data-help="batch">Batch</button>
+      <button role="tab" data-help="settings">Settings</button>
     </div>
     <div class="help-body">
       <section data-help="carousel">
@@ -679,6 +706,17 @@
         <p>Each file name says where it came from: <code>DSC_0420_2-carousel_01.jpg</code> is photo DSC_0420, step 2, a carousel, slide 1.</p>
       </section>
 
+      <section data-help="settings" hidden>
+        <h3>Color</h3>
+        <p>Pick the accent color for buttons and highlights. These are the five colors of Weiniverse. Your choice is saved in this browser.</p>
+        <div class="swatches" id="swatches">
+          <button class="swatch" data-theme-pick="violet" style="--c:#a78bfa"><i></i>Violet</button>
+          <button class="swatch" data-theme-pick="cyan" style="--c:#22d3ee"><i></i>Cyan</button>
+          <button class="swatch" data-theme-pick="gold" style="--c:#fbbf24"><i></i>Gold</button>
+          <button class="swatch" data-theme-pick="rose" style="--c:#f472b6"><i></i>Rose</button>
+          <button class="swatch" data-theme-pick="emerald" style="--c:#34d399"><i></i>Emerald</button>
+        </div>
+      </section>
     </div>
     <p class="help-foot">Seamless runs entirely in your browser. Your photos are never uploaded.</p>
   </dialog>
@@ -2221,6 +2259,21 @@
       help.showModal();
     };
     $$(".help-tabs button").forEach((b) => (b.onclick = () => showHelpTab(b.dataset.help)));
+
+    function syncSwatches() {
+      const current = document.documentElement.dataset.theme || "violet";
+      $$("[data-theme-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themePick === current)));
+    }
+    $$("[data-theme-pick]").forEach((b) => (b.onclick = () => {
+      const t = b.dataset.themePick;
+      if (t === "violet") delete document.documentElement.dataset.theme;
+      else document.documentElement.dataset.theme = t;
+      try {
+        localStorage.setItem("seamless.theme", t);
+      } catch {}
+      syncSwatches();
+    }));
+    syncSwatches();
     $("#helpClose").onclick = () => help.close();
     help.addEventListener("click", (e) => e.target === help && help.close());
 
