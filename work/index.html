@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Draft: keep search engines away until the page is finished and linked from the home page -->
+  <meta name="robots" content="noindex" />
+  <title>Wei Rui · AI/ML Engineer</title>
+  <meta name="description" content="Wei Rui, AI/ML engineer focused on evaluation. Selected work at Gusto, Confluent and ServiceNow, side projects, and deep dives on evaluating machine learning systems." />
+  <link rel="canonical" href="https://weiniverse.com/work/" />
+  <meta property="og:type" content="profile" />
+  <meta property="og:title" content="Wei Rui · AI/ML Engineer" />
+  <meta property="og:description" content="AI/ML engineer focused on evaluation. Selected work, side projects and deep dives." />
+  <meta property="og:url" content="https://weiniverse.com/work/" />
+  <meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  <link rel="preload" href="fonts/IBMPlexSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Wei Rui",
+    "jobTitle": "AI/ML Engineer",
+    "url": "https://weiniverse.com/work/",
+    "sameAs": ["https://www.linkedin.com/in/wei-rui", "https://github.com/weirui828", "https://medium.com/@wei.rui828"]
+  }
+  </script>
+  <style>
+    /* The work page has its own look, separate from the personal site: Wei Design System, Snorkel Blue theme.
+       Token names follow the design system's semantic layer; values are its Snorkel Blue light and dark modes. */
+    @font-face { font-family: "IBM Plex Sans"; src: url("fonts/IBMPlexSans-Variable.woff2") format("woff2"); font-weight: 100 700; font-display: swap; }
+    @font-face { font-family: "Space Grotesk"; src: url("fonts/SpaceGrotesk-Variable.woff2") format("woff2"); font-weight: 300 700; font-display: swap; }
+    @font-face { font-family: "Space Mono"; src: url("fonts/SpaceMono-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+    @font-face { font-family: "Space Mono"; src: url("fonts/SpaceMono-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+    :root {
+      color-scheme: light;
+      --surface-base: #f6f8fa;
+      --surface-raised: #ffffff;
+      --surface-sunken: #edf1f5;
+      --surface-inverse: #212932;
+      --fg-default: #212932;
+      --fg-muted: #4b5765;
+      --fg-inverse: #f6f8fa;
+      --fg-on-accent: #ffffff;
+      --border-subtle: #edf1f5;
+      --border-default: #dde3ea;
+      --border-strong: #c6cfd9;
+      --border-control: #63707f;
+      --accent-subtle: #ebf2f9;
+      --accent-muted: #a5c6e4;
+      --accent-default: #0f4c81;
+      --accent-hover: #0c3e69;
+      --accent-fg: #0c3e69;
+      --series-a: #a5c6e4;   /* classic-200: the baseline in charts */
+      --series-b: #0f4c81;   /* classic-500: the model being compared */
+      --success-subtle: #d6eddd; --success-default: #007844; --success-fg: #025d34; --success-border: #9fc9ad;
+      --warning-subtle: #ffead9; --warning-default: #a86217; --warning-fg: #844b0d; --warning-border: #e6c0a2;
+      --danger-subtle: #fee0de;  --danger-default: #bf1932;  --danger-fg: #9f1b2b;  --danger-border: #f0aba9;
+      --shadow-sm: 0 1px 3px 0 rgb(33 41 50 / 0.1), 0 1px 2px -1px rgb(33 41 50 / 0.06);
+      --shadow-md: 0 4px 6px -1px rgb(33 41 50 / 0.1), 0 2px 4px -2px rgb(33 41 50 / 0.06);
+
+      --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-mono: "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+
+      /* spacing: named, never numeric */
+      --space-2xs: .125rem; --space-xs: .25rem; --space-sm: .5rem; --space-md: .75rem;
+      --space-lg: 1rem; --space-xl: 1.5rem; --space-2xl: 2rem; --space-3xl: 3rem; --space-4xl: 4rem;
+      --radius-xs: .125rem; --radius-sm: .25rem; --radius-md: .375rem; --radius-lg: .5rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --surface-base: #0b1220;
+        --surface-raised: #141e2e;
+        --surface-sunken: #070c15;
+        --surface-inverse: #f6f8fa;
+        --fg-default: #eef3f8;
+        --fg-muted: #aebac8;
+        --fg-inverse: #212932;
+        --fg-on-accent: #061d31;
+        --border-subtle: #1b2637;
+        --border-default: #2a3a4f;
+        --border-strong: #46566b;
+        --border-control: #8896a6;
+        --accent-subtle: #10243a;
+        --accent-muted: #0a3355;
+        --accent-default: #6fa3d0;
+        --accent-hover: #a5c6e4;
+        --accent-fg: #a5c6e4;
+        --series-a: #3b7bb2;   /* classic-400 */
+        --series-b: #d2e3f2;   /* classic-100 */
+        --success-subtle: #15261b; --success-default: #52b27a; --success-fg: #96cba8; --success-border: #274c35;
+        --warning-subtle: #2c1f14; --warning-default: #e0ab7f; --warning-fg: #edbf99; --warning-border: #5d4531;
+        --danger-subtle: #2e1616;  --danger-default: #f46d70;  --danger-fg: #fe9c9a;  --danger-border: #632e2f;
+        --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.45), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--surface-base);
+      color: var(--fg-default);
+      font: 400 1rem/1.75rem var(--font-sans);   /* text-site-body: 16/28 */
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, h4, p, ul, ol, figure, dl, dd { margin: 0; }
+    ul, ol { padding: 0; list-style: none; }
+    a { color: var(--accent-fg); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+    a:hover { color: var(--accent-hover); }
+    :focus-visible { outline: 2px solid var(--accent-default); outline-offset: 2px; border-radius: var(--radius-sm); }
+    img, video, svg { display: block; max-width: 100%; }
+    .num, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    .wrap { max-width: 64rem; margin: 0 auto; padding: 0 var(--space-xl); }
+
+    /* ---------- Top bar ---------- */
+    .bar {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+      backdrop-filter: saturate(1.4) blur(10px);
+      -webkit-backdrop-filter: saturate(1.4) blur(10px);
+      border-bottom: 1px solid var(--border-default);
+    }
+    .bar .wrap { display: flex; align-items: center; gap: var(--space-xl); height: 3.5rem; }
+    .bar-name { font: 600 1rem/1.5rem var(--font-display); color: var(--fg-default); text-decoration: none; white-space: nowrap; }
+    .bar nav { flex: 1; min-width: 0; }
+    .bar nav ul { display: flex; gap: var(--space-lg); overflow-x: auto; scrollbar-width: none; }
+    .bar nav ul::-webkit-scrollbar { display: none; }
+    .bar nav a {
+      display: block; padding: var(--space-xs) 0;
+      font-size: .875rem; color: var(--fg-muted); text-decoration: none; white-space: nowrap;
+      border-bottom: 2px solid transparent;
+    }
+    .bar nav a:hover { color: var(--fg-default); }
+    .bar nav a[aria-current="true"] { color: var(--accent-fg); border-bottom-color: var(--accent-default); }
+    .icons { display: flex; gap: var(--space-xs); }
+    .icons a {
+      display: grid; place-items: center; width: 2.25rem; height: 2.25rem;
+      color: var(--fg-muted); border-radius: var(--radius-md);
+    }
+    .icons a:hover { color: var(--accent-fg); background: var(--accent-subtle); }
+    .icons svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
+
+    /* ---------- Hero ---------- */
+    .hero { padding: var(--space-4xl) 0 var(--space-3xl); }
+    .eyebrow {
+      font: 700 .75rem/1rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase;
+      color: var(--accent-fg);
+    }
+    .hero h1 {
+      margin-top: var(--space-md);
+      font: 600 4rem/4rem var(--font-display); letter-spacing: -0.02em;      /* text-site-display */
+    }
+    .hero .lead {
+      margin-top: var(--space-xl); max-width: 42rem;
+      font-size: 1.25rem; line-height: 2rem;                                /* text-site-lead */
+      color: var(--fg-muted);
+    }
+    .hero .lead strong { color: var(--fg-default); font-weight: 600; }
+    .cta { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-2xl); }
+    .btn {
+      display: inline-flex; align-items: center; gap: var(--space-sm);
+      height: 2.5rem; padding: 0 var(--space-lg);
+      border-radius: var(--radius-md); border: 1px solid var(--border-control);
+      font: 500 1rem/1.5rem var(--font-sans); text-decoration: none; color: var(--fg-default);
+      background: var(--surface-raised); box-shadow: 0 1px 2px 0 rgb(33 41 50 / .06);
+    }
+    .btn:hover { color: var(--fg-default); background: var(--surface-sunken); }
+    .btn.primary { background: var(--accent-default); border-color: var(--accent-default); color: var(--fg-on-accent); }
+    .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--fg-on-accent); }
+
+    /* Stat tiles: the four numbers a recruiter should take away */
+    .stats {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-lg);
+      margin-top: var(--space-3xl);
+    }
+    .stat {
+      padding: var(--space-lg); background: var(--surface-raised);
+      border: 1px solid var(--border-default); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+    }
+    .stat dt { font-size: .75rem; line-height: 1rem; color: var(--fg-muted); }
+    .stat dd.v { margin-top: var(--space-sm); font: 600 1.75rem/2.25rem var(--font-display); font-variant-numeric: lining-nums tabular-nums; }
+    .stat dd.c { margin-top: var(--space-xs); font-size: .75rem; line-height: 1rem; color: var(--fg-muted); }
+
+    /* ---------- Sections ---------- */
+    section.block { padding: var(--space-3xl) 0; border-top: 1px solid var(--border-default); }
+    .sec-head { display: grid; grid-template-columns: 4rem 1fr; align-items: baseline; margin-bottom: var(--space-2xl); }
+    .sec-head .no { font: 700 .875rem/1.25rem var(--font-mono); color: var(--accent-fg); }
+    .sec-head h2 { font: 600 2rem/2.5rem var(--font-display); letter-spacing: -0.01em; }        /* text-site-h2 */
+    .sec-head p { grid-column: 2; margin-top: var(--space-sm); color: var(--fg-muted); max-width: 42rem; }
+    .indent { margin-left: 4rem; }
+
+    /* Case studies: the main theme */
+    .cases { display: grid; gap: var(--space-xl); }
+    .case {
+      display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: var(--space-2xl);
+      padding: var(--space-xl); background: var(--surface-raised);
+      border: 1px solid var(--border-default); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+    }
+    .meta { font: 400 .75rem/1rem var(--font-mono); color: var(--fg-muted); letter-spacing: .02em; }
+    .meta b { color: var(--fg-default); font-weight: 700; }
+    .case h3, .side h3 { margin-top: var(--space-sm); font: 600 1.5rem/2rem var(--font-display); }   /* text-site-h3 */
+    .case .what { margin-top: var(--space-md); color: var(--fg-default); }
+    .case .did { margin-top: var(--space-md); display: grid; gap: var(--space-xs); }
+    .case .did li, .side .did li { position: relative; padding-left: var(--space-lg); color: var(--fg-muted); }
+    .case .did li::before, .side .did li::before {
+      content: ""; position: absolute; left: 0; top: .75rem; width: .375rem; height: .375rem;
+      border-radius: 50%; background: var(--accent-default);
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-lg); }
+    .tag {
+      font: 400 .75rem/1rem var(--font-mono); color: var(--fg-muted);
+      padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius-sm);
+      background: var(--surface-sunken);
+    }
+    .results { display: grid; align-content: start; gap: var(--space-md); padding-left: var(--space-xl); border-left: 1px solid var(--border-default); }
+    .results .r-v { font: 600 1.75rem/2.25rem var(--font-display); color: var(--accent-fg); font-variant-numeric: lining-nums tabular-nums; }
+    .results .r-l { font-size: .875rem; line-height: 1.25rem; color: var(--fg-muted); }
+    .results .r-note { font-size: .875rem; line-height: 1.25rem; color: var(--fg-muted); }
+    .badge {
+      display: inline-flex; align-items: center; gap: var(--space-xs); width: fit-content;
+      font-size: .75rem; line-height: 1rem; font-weight: 500;
+      padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius-sm);
+      background: var(--accent-subtle); color: var(--accent-fg);
+    }
+
+    .also { margin-top: var(--space-2xl); }
+    .also h3 { font: 600 1.25rem/1.75rem var(--font-display); }
+    .also ul { margin-top: var(--space-md); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md) var(--space-2xl); }
+    .also li { padding-top: var(--space-md); border-top: 1px solid var(--border-default); color: var(--fg-muted); font-size: .9375rem; line-height: 1.5rem; }
+    .also li b { display: block; color: var(--fg-default); font-weight: 600; }
+
+    /* Side projects: secondary, so smaller and quieter than the case studies */
+    .sides { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-lg); }
+    .side {
+      display: flex; flex-direction: column;
+      padding: var(--space-lg); background: var(--surface-raised);
+      border: 1px solid var(--border-default); border-radius: var(--radius-lg);
+    }
+    .side h3 { font-size: 1.25rem; line-height: 1.75rem; }
+    .side p { margin-top: var(--space-sm); font-size: .9375rem; line-height: 1.5rem; color: var(--fg-muted); }
+    .side .did { margin-top: var(--space-md); display: grid; gap: var(--space-xs); font-size: .875rem; line-height: 1.375rem; }
+    .side .did li::before { top: .5rem; }
+    .side .links { margin-top: auto; padding-top: var(--space-lg); display: flex; flex-wrap: wrap; gap: var(--space-lg); font-size: .875rem; }
+    .side .links a { font-weight: 500; }
+    .film {
+      position: relative; margin: var(--space-md) 0 0; border-radius: var(--radius-md); overflow: hidden;
+      background: var(--surface-sunken); aspect-ratio: 16 / 9;
+    }
+    .film video { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Deep dives: summary first, the full write-up unfolds in place */
+    .dive {
+      background: var(--surface-raised); border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+    }
+    .dive + .dive { margin-top: var(--space-xl); }
+    .dive-top { padding: var(--space-xl); }
+    .dive-top h3 { margin-top: var(--space-sm); font: 600 1.5rem/2rem var(--font-display); }
+    .dive-top .sum { margin-top: var(--space-md); max-width: 44rem; }
+    .dive-top .key {
+      margin-top: var(--space-lg); padding: var(--space-md) var(--space-lg);
+      background: var(--accent-subtle); border-radius: var(--radius-md); color: var(--accent-fg); font-weight: 500;
+    }
+    .dive details { border-top: 1px solid var(--border-default); }
+    .dive summary {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--space-md);
+      padding: var(--space-md) var(--space-xl); cursor: pointer; list-style: none;
+      font-weight: 500; color: var(--accent-fg);
+    }
+    .dive summary::-webkit-details-marker { display: none; }
+    .dive summary::after { content: "+"; font: 400 1.25rem/1 var(--font-mono); transition: transform .2s ease; }
+    .dive details[open] summary::after { transform: rotate(45deg); }
+    .dive summary:hover { background: var(--surface-sunken); }
+    .dive .body { padding: 0 var(--space-xl) var(--space-xl); }
+    .prose { max-width: 42.5rem; }   /* site-prose: about 68 characters a line */
+    .prose > * + * { margin-top: var(--space-lg); }
+    .prose h4 { margin-top: var(--space-2xl); font: 600 1.25rem/1.75rem var(--font-display); }
+    .prose ul { display: grid; gap: var(--space-sm); }
+    .prose ul li { position: relative; padding-left: var(--space-lg); }
+    .prose ul li::before { content: ""; position: absolute; left: 0; top: .75rem; width: .375rem; height: .375rem; border-radius: 50%; background: var(--accent-default); }
+    .prose code { font: .875em var(--font-mono); background: var(--surface-sunken); padding: 0 var(--space-xs); border-radius: var(--radius-xs); }
+
+    figure.fig { margin-top: var(--space-xl); padding: var(--space-lg); background: var(--surface-sunken); border-radius: var(--radius-lg); max-width: none; }
+    figure.fig figcaption { margin-top: var(--space-md); font-size: .875rem; line-height: 1.25rem; color: var(--fg-muted); }
+    figure.fig figcaption b { color: var(--fg-default); font-weight: 600; }
+
+    /* Fig: macro F1 for two models across three test sets */
+    .bars { display: grid; gap: var(--space-lg); }
+    .bars .grp-label { font-size: .875rem; line-height: 1.25rem; font-weight: 600; }
+    .bars .grp-label span { font-weight: 400; color: var(--fg-muted); }
+    .bars .row { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 3.5rem; align-items: center; gap: var(--space-sm); margin-top: var(--space-xs); }
+    .bars .who { font-size: .75rem; line-height: 1rem; color: var(--fg-muted); }
+    .bars .track { height: .75rem; background: var(--surface-raised); border-radius: var(--radius-xs); }
+    .bars .fill { height: 100%; width: calc(var(--v) * 100%); border-radius: var(--radius-xs); }
+    .bars .fill.a { background: var(--series-a); }
+    .bars .fill.b { background: var(--series-b); }
+    .bars .val { font: 400 .75rem/1rem var(--font-mono); text-align: right; }
+    .legend { display: flex; flex-wrap: wrap; gap: var(--space-lg); margin-bottom: var(--space-lg); font-size: .75rem; line-height: 1rem; color: var(--fg-muted); }
+    .legend i { display: inline-block; width: .75rem; height: .75rem; border-radius: var(--radius-xs); margin-right: var(--space-xs); vertical-align: -1px; }
+
+    table.data { width: 100%; border-collapse: collapse; font-size: .875rem; line-height: 1.25rem; }
+    table.data th, table.data td { padding: var(--space-sm) var(--space-md); text-align: left; border-bottom: 1px solid var(--border-default); }
+    table.data thead th { font-size: .75rem; line-height: 1rem; color: var(--fg-muted); font-weight: 500; background: var(--surface-raised); }
+    table.data td.n, table.data th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    table.data td.lo { color: var(--danger-fg); font-weight: 700; }
+    .table-wrap { overflow-x: auto; }
+
+    /* Fig: TriageKit's routing band */
+    .band { display: grid; grid-template-columns: 38% 30% 32%; height: 2.5rem; border-radius: var(--radius-md); overflow: hidden; font-size: .75rem; line-height: 1rem; font-weight: 500; }
+    .band > div { display: grid; place-items: center; text-align: center; padding: 0 var(--space-xs); }
+    .band .auto { background: var(--success-subtle); color: var(--success-fg); }
+    .band .review { background: var(--warning-subtle); color: var(--warning-fg); border-left: 2px solid var(--warning-default); border-right: 2px solid var(--warning-default); }
+    .band .esc { background: var(--danger-subtle); color: var(--danger-fg); }
+    .band-scale { display: grid; grid-template-columns: 38% 30% 32%; margin-top: var(--space-xs); font: 400 .75rem/1rem var(--font-mono); color: var(--fg-muted); }
+    .band-scale span:nth-child(2) { margin-left: -1.25rem; }
+    .band-scale span:nth-child(3) { margin-left: -1.25rem; }
+    .band-scale span:last-child { text-align: right; margin-left: 0; }
+
+    /* Experience */
+    .xp { display: grid; }
+    .xp li { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--space-xl); padding: var(--space-lg) 0; border-top: 1px solid var(--border-default); }
+    .xp li:last-child { border-bottom: 1px solid var(--border-default); }
+    .xp .when { font: 400 .875rem/1.75rem var(--font-mono); color: var(--fg-muted); }
+    .xp h3 { font: 600 1.25rem/1.75rem var(--font-display); }
+    .xp h3 span { font-family: var(--font-sans); font-weight: 400; color: var(--fg-muted); font-size: 1rem; }
+    .xp p { margin-top: var(--space-xs); color: var(--fg-muted); }
+
+    /* Skills, education */
+    .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2xl); }
+    .skills { display: grid; gap: var(--space-lg); }
+    .skills dt { font: 700 .75rem/1rem var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--fg-muted); }
+    .skills dd { margin-top: var(--space-xs); }
+    .facts { display: grid; gap: var(--space-md); }
+    .facts li { padding-bottom: var(--space-md); border-bottom: 1px solid var(--border-default); }
+    .facts b { font-weight: 600; }
+    .facts span { display: block; color: var(--fg-muted); font-size: .9375rem; line-height: 1.5rem; }
+    .col-title { font: 600 1.25rem/1.75rem var(--font-display); margin-bottom: var(--space-lg); }
+
+    /* Writing */
+    .posts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-2xl); }
+    .posts li { border-top: 1px solid var(--border-default); }
+    .posts a { display: block; padding: var(--space-md) 0; text-decoration: none; color: var(--fg-default); }
+    .posts a:hover .t { color: var(--accent-fg); text-decoration: underline; }
+    .posts .d { font: 400 .75rem/1rem var(--font-mono); color: var(--fg-muted); }
+    .posts .t { display: block; margin-top: var(--space-2xs); font-weight: 500; line-height: 1.5rem; }
+    .posts .tag { margin-left: var(--space-sm); }
+
+    /* Footer */
+    footer.end { margin-top: var(--space-3xl); padding: var(--space-3xl) 0; background: var(--surface-inverse); color: var(--fg-inverse); }
+    footer.end .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2xl); align-items: end; }
+    footer.end h2 { font: 600 2rem/2.5rem var(--font-display); }
+    footer.end p { margin-top: var(--space-sm); opacity: .8; max-width: 36rem; }
+    footer.end a { color: inherit; }
+    footer.end .icons a { color: var(--fg-inverse); }
+    footer.end .icons a:hover { background: color-mix(in srgb, var(--fg-inverse) 12%, transparent); color: var(--fg-inverse); }
+    footer.end small { display: block; margin-top: var(--space-2xl); font: 400 .75rem/1rem var(--font-mono); opacity: .7; }
+    /* In dark mode the inverse surface turns light; keep the footer a quiet dark band instead */
+    @media (prefers-color-scheme: dark) {
+      footer.end { background: var(--surface-sunken); color: var(--fg-default); border-top: 1px solid var(--border-default); }
+      footer.end .icons a { color: var(--fg-muted); }
+      footer.end .icons a:hover { color: var(--accent-fg); background: var(--accent-subtle); }
+    }
+
+    /* ---------- Phones and small tablets ---------- */
+    @media (max-width: 860px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .case { grid-template-columns: 1fr; gap: var(--space-xl); }
+      .results { padding-left: 0; padding-top: var(--space-lg); border-left: 0; border-top: 1px solid var(--border-default); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sides { grid-template-columns: 1fr; }
+      .also ul, .posts, .two { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 var(--space-lg); }
+      .bar nav { display: none; }
+      .bar .wrap { justify-content: space-between; }
+      .hero { padding: var(--space-3xl) 0 var(--space-2xl); }
+      .hero h1 { font-size: 2.5rem; line-height: 2.75rem; }            /* display on phones: 40/44 */
+      .hero .lead { font-size: 1.125rem; line-height: 1.75rem; }
+      .sec-head { grid-template-columns: 1fr; }
+      .sec-head .no { margin-bottom: var(--space-xs); }
+      .sec-head h2, footer.end h2 { font-size: 1.5rem; line-height: 2rem; }   /* h2 on phones: 24/32 */
+      .sec-head p { grid-column: 1; }
+      .indent { margin-left: 0; }
+      .case, .dive-top { padding: var(--space-lg); }
+      .dive summary { padding: var(--space-md) var(--space-lg); }
+      .dive .body { padding: 0 var(--space-lg) var(--space-lg); }
+      .xp li { grid-template-columns: 1fr; gap: var(--space-2xs); }
+      .bars .row { grid-template-columns: 5.5rem minmax(0, 1fr) 3rem; }
+      footer.end .wrap { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+    @media print {
+      .bar, .cta, footer.end .icons { display: none; }
+      body { background: #fff; }
+      .case, .side, .dive, .stat { box-shadow: none; break-inside: avoid; }
+      details > :not(summary) { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#main">Skip to content</a>
+
+  <header class="bar">
+    <div class="wrap">
+      <a class="bar-name" href="#top">Wei Rui</a>
+      <nav aria-label="Sections">
+        <ul>
+          <li><a href="#work">Selected work</a></li>
+          <li><a href="#deep-dives">Deep dives</a></li>
+          <li><a href="#side-projects">Side projects</a></li>
+          <li><a href="#experience">Experience</a></li>
+          <li><a href="#writing">Writing</a></li>
+        </ul>
+      </nav>
+      <div class="icons">
+        <a href="https://www.linkedin.com/in/wei-rui" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
+        <a href="https://github.com/weirui828" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a>
+        <a href="https://medium.com/@wei.rui828" aria-label="Medium" title="Medium"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/></svg></a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- ===================== Hero: the 30-second read ===================== -->
+      <section class="hero" id="top" aria-labelledby="name">
+        <p class="eyebrow">AI/ML Engineer · San Francisco</p>
+        <h1 id="name">Wei Rui</h1>
+        <!-- DRAFT headline: the user still has to pick the final wording -->
+        <p class="lead">I build and evaluate AI systems. Right now I work on <strong>evaluation</strong> at Gusto: measuring whether AI actually does what it should. Behind that is production engineering since 2007, at Confluent, ServiceNow and Optum.</p>
+        <div class="cta">
+          <a class="btn primary" href="#work">See selected work</a>
+          <a class="btn" href="https://www.linkedin.com/in/wei-rui">LinkedIn</a>
+          <a class="btn" href="https://github.com/weirui828">GitHub</a>
+        </div>
+
+        <dl class="stats">
+          <div class="stat"><dt>Shipping production software</dt><dd class="v">Since 2007</dd><dd class="c">Finance, healthcare data, enterprise SaaS, data streaming</dd></div>
+          <div class="stat"><dt>Customers using a RAG chatbot I helped build</dt><dd class="v">60%+</dd><dd class="c">Confluent</dd></div>
+          <div class="stat"><dt>7-day user activation after Paywall Removal</dt><dd class="v">+91%</dd><dd class="c">Confluent · GSD Award</dd></div>
+          <div class="stat"><dt>Patents filed</dt><dd class="v">2</dd><dd class="c">Fair queuing at ServiceNow · image authentication</dd></div>
+        </dl>
+      </section>
+
+      <!-- ===================== 01 Selected work: the main theme ===================== -->
+      <section class="block" id="work" aria-labelledby="work-h">
+        <div class="sec-head">
+          <span class="no">01</span>
+          <h2 id="work-h">Selected work</h2>
+          <p>Projects from my jobs. Each one: what the problem was, what I did, and what changed.</p>
+        </div>
+
+        <div class="cases">
+          <article class="case">
+            <div>
+              <p class="meta"><b>Gusto</b> · AI/ML Engineering · Aug 2025&nbsp;–&nbsp;present</p>
+              <h3>Evaluating AI in production</h3>
+              <!-- TODO(user): Gusto details to be filled in later -->
+              <p class="what">I'm an AI/ML engineer at Gusto, focused on evaluation: measuring how well AI systems work.</p>
+              <div class="tags"><span class="tag">Evaluation</span><span class="tag">LLMs</span><span class="tag">Python</span></div>
+            </div>
+            <div class="results">
+              <span class="badge">Current role</span>
+              <p class="r-note">More detail coming soon.</p>
+            </div>
+          </article>
+
+          <article class="case">
+            <div>
+              <p class="meta"><b>Confluent</b> · Software Engineer · 2021&nbsp;–&nbsp;2025</p>
+              <h3>A customer-facing RAG chatbot</h3>
+              <p class="what">An AI chatbot inside the product that uses retrieval-augmented generation (RAG) to give customers personalized insights.</p>
+              <ul class="did">
+                <li>Led the UI development and the API integration for the chatbot.</li>
+                              </ul>
+              <div class="tags"><span class="tag">RAG</span><span class="tag">LLMs</span><span class="tag">React</span><span class="tag">TypeScript</span><span class="tag">API design</span></div>
+            </div>
+            <div class="results">
+              <div><p class="r-v">60%+</p><p class="r-l">of customers used it</p></div>
+              <p class="r-note">Reduced manual support work.</p>
+            </div>
+          </article>
+
+          <article class="case">
+            <div>
+              <p class="meta"><b>Confluent</b> · Software Engineer · 2021&nbsp;–&nbsp;2025</p>
+              <h3>Paywall Removal</h3>
+              <p class="what">New users had to enter a credit card during onboarding. This executive-priority project removed that requirement.</p>
+              <ul class="did">
+                <li>Led the initiative, delivered under time pressure.</li>
+                <li>Removed the credit card step and optimized the related onboarding workflows.</li>
+              </ul>
+              <div class="tags"><span class="tag">Product growth</span><span class="tag">Onboarding</span><span class="tag">Leadership</span></div>
+            </div>
+            <div class="results">
+              <div><p class="r-v">+91%</p><p class="r-l">7-day user activation</p></div>
+              <div><p class="r-v">+96%</p><p class="r-l">14-day usage</p></div>
+              <span class="badge">GSD (Get Stuff Done) Award</span>
+            </div>
+          </article>
+
+          <article class="case">
+            <div>
+              <p class="meta"><b>ServiceNow</b> · Software Engineer · 2017&nbsp;–&nbsp;2021</p>
+              <h3>Fair queuing for the transaction engine</h3>
+              <p class="what">Under heavy load, one busy tenant could take the resources of the core transaction processing engine, and everyone else got rate-limit errors (HTTP 429).</p>
+              <ul class="did">
+                <li>Designed and built a fair-queuing algorithm so no single tenant can starve the others.</li>
+                <li>The design was filed as a patent.</li>
+              </ul>
+              <div class="tags"><span class="tag">Distributed systems</span><span class="tag">Concurrency</span><span class="tag">Java</span><span class="tag">Performance</span></div>
+            </div>
+            <div class="results">
+              <div><p class="r-v">0.9</p><p class="r-l">scaling factor: close to linear</p></div>
+              <p class="r-note">Far fewer 429 errors under high volume, and no single-tenant starvation.</p>
+              <span class="badge">Patent filed</span>
+            </div>
+          </article>
+
+          <article class="case">
+            <div>
+              <p class="meta"><b>Confluent</b> · Software Engineer · 2021&nbsp;–&nbsp;2025</p>
+              <h3>Data contracts platform</h3>
+              <p class="what">A data governance and security feature for a flagship product, starting from an ambitious vision and no code.</p>
+              <ul class="did">
+                <li>Turned the vision into a technical strategy and an execution plan.</li>
+                <li>Led a team of three engineers to build the platform from the ground up.</li>
+                <li>Owned the frontend architecture and the API contract.</li>
+              </ul>
+              <div class="tags"><span class="tag">Data governance</span><span class="tag">API design</span><span class="tag">Technical leadership</span></div>
+            </div>
+            <div class="results">
+              <div><p class="r-v">3</p><p class="r-l">engineers led, built from the ground up</p></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="also indent">
+          <h3>Also</h3>
+          <ul>
+            <li><b>Project Woodpecker, Confluent</b>Led a 3-day effort with 25+ engineers from 4 teams. The bug backlog went from 150+ to under 70.</li>
+            <li><b>Billing close automation, Confluent</b>Built a tool that cut the billing team's monthly close time by 80%.</li>
+            <li><b>Search suggestions service, ServiceNow</b>Designed a new service, chose between matching algorithms, and helped teams across ServiceNow adopt it.</li>
+            <li><b>Data mapping tool, ServiceNow</b>Led it end to end: drag and drop, nested tree structures, frontend architecture and API contract.</li>
+            <li><b>Monolith to microservices, Optum</b>Moved a healthcare data analysis SaaS from a legacy monolith to microservices.</li>
+            <li><b>Hackathon, Confluent</b>Led a team to 2nd place and wrote a technical blog post about the solution.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===================== 02 Deep dives: evaluation ===================== -->
+      <section class="block" id="deep-dives" aria-labelledby="dd-h">
+        <div class="sec-head">
+          <span class="no">02</span>
+          <h2 id="dd-h">Deep dives: evaluation</h2>
+          <p>Two projects where the real work was measuring things honestly. Read the summary, or open the full write-up.</p>
+        </div>
+
+        <article class="dive" id="dive-human-loop">
+          <div class="dive-top">
+            <p class="meta"><b>human-loop</b> · research project · Python, scikit-learn, DistilBERT</p>
+            <h3>A benchmark score of 0.998 that meant nothing</h3>
+            <p class="sum">Can a model trained on clean, synthetic support data decide which real customer messages need a human? I trained a simple baseline and a fine-tuned DistilBERT on a synthetic dataset, then tested both on real tweets to customer support.</p>
+            <p class="key">On synthetic data both models scored about 0.998 macro F1. On real tweets they dropped to 0.58 and 0.56. Better labels helped far more than a better model.</p>
+          </div>
+          <details>
+            <summary>Read the deep dive</summary>
+            <div class="body prose">
+              <h4>The setup</h4>
+              <ul>
+                <li><b>Training data:</b> Bitext, a synthetic customer-support dataset. Its 27 intents were mapped to a yes/no question: does this need a human? That gave 17,770 self-service and 6,865 escalated examples (72% / 28%), so I report macro F1 and ROC-AUC, not accuracy.</li>
+                <li><b>Real-world test:</b> 5,000 threads from Twitter customer support (TWCS), labeled with an LLM, using only the customer's first message, which is all a live system has.</li>
+                <li><b>Models:</b> TF-IDF with logistic regression as the baseline, and a fine-tuned DistilBERT. Both reuse the same 80/20 splits, checked by re-scoring the saved baseline before comparing anything.</li>
+              </ul>
+
+              <figure class="fig">
+                <div class="legend" aria-hidden="true"><span><i style="background: var(--series-a)"></i>TF-IDF + logistic regression</span><span><i style="background: var(--series-b)"></i>DistilBERT</span></div>
+                <div class="bars" role="img" aria-label="Macro F1. Synthetic test: TF-IDF 0.9975, DistilBERT 0.9980. Real tweets, trained on synthetic: TF-IDF 0.5816, DistilBERT 0.5568. Real tweets, trained on real labels: TF-IDF 0.7327, DistilBERT 0.7969.">
+                  <div>
+                    <p class="grp-label">Synthetic test set <span>(trained on synthetic)</span></p>
+                    <div class="row"><span class="who">TF-IDF</span><div class="track"><div class="fill a" style="--v: .9975"></div></div><span class="val">0.9975</span></div>
+                    <div class="row"><span class="who">DistilBERT</span><div class="track"><div class="fill b" style="--v: .998"></div></div><span class="val">0.9980</span></div>
+                  </div>
+                  <div>
+                    <p class="grp-label">Real tweets <span>(trained on synthetic, zero-shot)</span></p>
+                    <div class="row"><span class="who">TF-IDF</span><div class="track"><div class="fill a" style="--v: .5816"></div></div><span class="val">0.5816</span></div>
+                    <div class="row"><span class="who">DistilBERT</span><div class="track"><div class="fill b" style="--v: .5568"></div></div><span class="val">0.5568</span></div>
+                  </div>
+                  <div>
+                    <p class="grp-label">Real tweets <span>(trained on real labels)</span></p>
+                    <div class="row"><span class="who">TF-IDF</span><div class="track"><div class="fill a" style="--v: .7327"></div></div><span class="val">0.7327</span></div>
+                    <div class="row"><span class="who">DistilBERT</span><div class="track"><div class="fill b" style="--v: .7969"></div></div><span class="val">0.7969</span></div>
+                  </div>
+                </div>
+                <figcaption><b>Fig. 1</b> Macro F1 of both models on three test sets. The synthetic score says nothing about real traffic.</figcaption>
+              </figure>
+
+              <h4>What the numbers showed</h4>
+              <ul>
+                <li><b>The synthetic benchmark can't tell the models apart.</b> DistilBERT beats the baseline by 0.0005 there, a handful of rows out of 4,927.</li>
+                <li><b>Trained on synthetic data, the transformer is worse on real tweets</b> (0.5568 vs 0.5816). It became over-confident: almost every tweet scored near zero, so at the usual 0.5 cut-off it flagged almost nothing. Its best cut-off was 0.01, and it still lost.</li>
+                <li><b>Real labels are worth more than a better model.</b> Retraining on real labels added 0.15 macro F1 for the baseline and 0.24 for DistilBERT. Switching to DistilBERT on real data added only 0.06.</li>
+                <li><b>The gain from DistilBERT is precision, not recall.</b> It raises far fewer false alarms but misses slightly more escalations. Macro F1 likes that trade; a support desk might not, so the cut-off has to be chosen on purpose.</li>
+              </ul>
+
+              <h4>Where it failed, and why</h4>
+              <p>The average hides which kinds of message survive the move. Recall on real tweets, for the baseline trained on synthetic data:</p>
+              <div class="table-wrap">
+                <table class="data">
+                  <thead><tr><th scope="col">Escalation intent</th><th scope="col" class="n">Threads</th><th scope="col" class="n">Recall</th></tr></thead>
+                  <tbody>
+                    <tr><td>check_cancellation_fee</td><td class="n">18</td><td class="n">0.72</td></tr>
+                    <tr><td>contact_human_agent</td><td class="n">65</td><td class="n">0.60</td></tr>
+                    <tr><td>get_refund</td><td class="n">112</td><td class="n">0.52</td></tr>
+                    <tr><td>contact_customer_service</td><td class="n">169</td><td class="n">0.52</td></tr>
+                    <tr><td>payment_issue</td><td class="n">281</td><td class="n lo">0.35</td></tr>
+                    <tr><td>complaint</td><td class="n">759</td><td class="n">0.32</td></tr>
+                    <tr><td>registration_problems</td><td class="n">125</td><td class="n lo">0.20</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="r-note">In red: the two categories explained below.</p>
+              <p>The worst failures were not noisy language. They came from the labels. The synthetic data files password resets and invoice lookups as self-service. On Twitter, a lockout or a double charge is exactly what needs a person. The model read the words correctly and applied the wrong rule, and the two things a support desk can least afford to misroute are locked-out users and missing money.</p>
+
+              <h4>What it costs</h4>
+              <div class="table-wrap">
+                <table class="data">
+                  <thead><tr><th scope="col"></th><th scope="col" class="n">TF-IDF</th><th scope="col" class="n">DistilBERT</th><th scope="col" class="n">Ratio</th></tr></thead>
+                  <tbody>
+                    <tr><td>Training</td><td class="n">0.09 s</td><td class="n">222 s</td><td class="n">~2,600×</td></tr>
+                    <tr><td>Predicting, CPU</td><td class="n">0.15 ms</td><td class="n">12.02 ms</td><td class="n">82×</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>Neither number blocks anything at this scale. The bigger point: a frontier LLM takes about a second or more per message and bills per token every time. Distilling its judgment into a small model means paying the frontier price once, during labeling, instead of on every ticket.</p>
+              <p><a href="https://github.com/weirui828/human-loop">Code, notebooks and every metric on GitHub →</a></p>
+            </div>
+          </details>
+        </article>
+
+        <article class="dive" id="dive-triagekit">
+          <div class="dive-top">
+            <p class="meta"><b>TriageKit</b> · open-source tool · Python, TypeScript, SQLite</p>
+            <h3>Evaluation rules built into the product</h3>
+            <p class="sum">A local, human-in-the-loop classifier that decides which customer messages need a person. The interesting part is not the model. It is the rules that keep the evaluation honest, enforced by the tool instead of left to discipline.</p>
+            <p class="key">The threshold is chosen on validation data only, the test set is scored once, and a model that misses the contract's limits cannot be promoted.</p>
+          </div>
+          <details>
+            <summary>Read the deep dive</summary>
+            <div class="body prose">
+              <h4>Three-way routing instead of yes or no</h4>
+              <p>Every message gets a score. Below a <code>low</code> threshold it is handled automatically, at or above <code>high</code> it is escalated, and anything in between goes to a person to review.</p>
+              <figure class="fig">
+                <div class="band" role="img" aria-label="Score from 0 to 1. Below low: auto-handle. Between low and high: human review. At or above high: escalate.">
+                  <div class="auto">auto-handle</div>
+                  <div class="review">human review</div>
+                  <div class="esc">escalate</div>
+                </div>
+                <div class="band-scale" aria-hidden="true"><span>0</span><span>low</span><span>high</span></div>
+                <figcaption><b>Fig. 2</b> The routing band. Where <code>low</code> and <code>high</code> sit is decided by the label contract's limits, not by hand.</figcaption>
+              </figure>
+
+              <h4>A label contract defines “needs a human”</h4>
+              <p>Each dataset comes with a YAML contract: the two classes with examples and rules for unclear cases, the allowed categories, how the threshold is chosen, and the limits for automatic routing, such as the maximum auto-error rate and the maximum number of missed positives.</p>
+
+              <h4>Rules the tool enforces</h4>
+              <ul>
+                <li><b>Snapshots are immutable.</b> Every training run uses a fixed copy of the data, so a result can always be traced back.</li>
+                <li><b>The threshold and routing band are chosen on validation data only.</b> The test set is scored once, after the policy is fixed.</li>
+                <li><b>No policy within the contract's limits, no promotion.</b> A run that can't meet them stays a run.</li>
+                <li><b>Runs are compared only on identical data under the same contract.</b></li>
+                <li><b>Feedback becomes new labels,</b> but feedback on validation or test rows is kept for audit only and never used for training.</li>
+                <li><b>Promotion and rollback are explicit and logged,</b> and every decision records the model version that made it.</li>
+              </ul>
+
+              <h4>Watching it after launch</h4>
+              <p>A monitor page tracks volume, the mix of actions, the review rate, the override rate and score drift against the production model. A scripted demo scores a message, records a correction, retrains, and shows that the training data changed while the evaluation data stayed fixed.</p>
+              <p><a href="https://github.com/weirui828/triagekit">TriageKit on GitHub →</a></p>
+            </div>
+          </details>
+        </article>
+      </section>
+
+      <!-- ===================== 03 Side projects: secondary ===================== -->
+      <section class="block" id="side-projects" aria-labelledby="sp-h">
+        <div class="sec-head">
+          <span class="no">03</span>
+          <h2 id="sp-h">Side projects</h2>
+          <p>Things I build on my own time to learn and try ideas.</p>
+        </div>
+
+        <div class="sides">
+          <article class="side">
+            <p class="meta">Agentic system · Python</p>
+            <h3>Dream Pet</h3>
+            <p>An AI pet with its own drives. It decides when to explore, reads the web, and at night turns what it read into a short dream.</p>
+            <div class="film">
+              <video src="https://weirui828.github.io/media/dreams/sovereigns-ghost.mp4" poster="https://weirui828.github.io/media/dreams/sovereigns-ghost.jpg" controls muted playsinline preload="none" aria-label="A dream film made by Dream Pet"></video>
+            </div>
+            <ul class="did">
+              <li>An autonomous loop: boredom and energy decide when it explores and when it sleeps.</li>
+              <li>A curiosity reward: surprise is the distance between its guess and the page, in embedding space.</li>
+              <li>A critic sends a dream back if any scene isn't built from a real memory. In the dream above, all 5 scenes cite one.</li>
+            </ul>
+            <p class="links"><a href="https://github.com/weirui828/dream-pet">GitHub →</a><a href="../#building">The full story →</a></p>
+          </article>
+
+          <article class="side">
+            <p class="meta">ML tool · Python, TypeScript</p>
+            <h3>TriageKit</h3>
+            <p>A local, human-in-the-loop text classifier. You label, train, review the metrics and promote a model; uncertain messages go to a person.</p>
+            <ul class="did">
+              <li>Three models: TF-IDF with logistic regression, DistilBERT, and BERTweet.</li>
+              <li>Optional second tier (rules or an LLM) for the uncertain band.</li>
+              <li>Runs on one machine with SQLite. No cloud services.</li>
+            </ul>
+            <p class="links"><a href="#dive-triagekit">Deep dive ↑</a><a href="https://github.com/weirui828/triagekit">GitHub →</a></p>
+          </article>
+
+          <article class="side">
+            <p class="meta">Research · Python, Jupyter</p>
+            <h3>human-loop</h3>
+            <p>A study of whether a model trained on clean, synthetic support data can handle real customer messages. Short answer: not without real labels.</p>
+            <ul class="did">
+              <li>5 notebooks; every metric is tracked in the repo.</li>
+              <li>TF-IDF baseline vs fine-tuned DistilBERT, plus a casing comparison over 3 seeds.</li>
+            </ul>
+            <p class="links"><a href="#dive-human-loop">Deep dive ↑</a><a href="https://github.com/weirui828/human-loop">GitHub →</a></p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===================== 04 Experience ===================== -->
+      <section class="block" id="experience" aria-labelledby="xp-h">
+        <div class="sec-head">
+          <span class="no">04</span>
+          <h2 id="xp-h">Experience</h2>
+        </div>
+        <ol class="xp indent">
+          <li><span class="when">Aug 2025&nbsp;–&nbsp;present</span><div><h3>Gusto <span>· AI/ML Engineering</span></h3><p>Evaluation for AI features.</p></div></li>
+          <li><span class="when">Jun 2021 – Aug 2025</span><div><h3>Confluent <span>· Software Engineer</span></h3><p>RAG chatbot, Paywall Removal, data contracts platform. Java, Go, Python, Kubernetes, React, TypeScript; AWS, GCP, Azure.</p></div></li>
+          <li><span class="when">Jul 2017 – Jun 2021</span><div><h3>ServiceNow <span>· Software Engineer</span></h3><p>Fair queuing for the core transaction engine, search suggestions, data mapping. Java, distributed systems, concurrency.</p></div></li>
+          <li><span class="when">Jun 2014 – Apr 2017</span><div><h3>Humedica (Optum) <span>· Software Engineer</span></h3><p>Healthcare data analysis SaaS: monolith to microservices.</p></div></li>
+        </ol>
+      </section>
+
+      <!-- ===================== 05 Skills · Education ===================== -->
+      <section class="block" id="skills" aria-labelledby="sk-h">
+        <div class="sec-head">
+          <span class="no">05</span>
+          <h2 id="sk-h">Skills and education</h2>
+        </div>
+        <div class="two indent">
+          <dl class="skills">
+            <div><dt>AI and ML</dt><dd>Evaluation, RAG, LLMs, text classification, fine-tuning (DistilBERT), embeddings</dd></div>
+            <div><dt>Languages</dt><dd>Python, Java, Go, TypeScript</dd></div>
+            <div><dt>Systems</dt><dd>Distributed systems, concurrency, performance, Kubernetes, API design (REST, GraphQL, gRPC)</dd></div>
+            <div><dt>Cloud and web</dt><dd>AWS, GCP, Azure, React</dd></div>
+          </dl>
+          <div>
+            <ul class="facts">
+              <li><b>MS, Computer Science</b><span>Maharishi International University</span></li>
+              <li><b>MS, Communication and Information Systems</b><span>Sun Yat-sen University</span></li>
+              <li><b>BS, Optical Information Science and Technology</b><span>Sun Yat-sen University</span></li>
+              <li><b>Professional Certificate in Machine Learning and Artificial Intelligence</b><span>Emeritus, 2026 · two assignments graded Exemplary</span></li>
+              <li><b>Patents filed</b><span>Concurrent transaction processing (ServiceNow) · binary image authentication (Sun Yat-sen University)</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 06 Writing ===================== -->
+      <section class="block" id="writing" aria-labelledby="wr-h">
+        <div class="sec-head">
+          <span class="no">06</span>
+          <h2 id="wr-h">Writing</h2>
+          <p>I explain ML ideas the way I'd want them explained to me, as a software engineer.</p>
+        </div>
+        <ul class="posts indent">
+          <li><a href="https://medium.com/@wei.rui828/a-software-engineers-intuition-for-gradient-descent-part-2-the-step-size-7ed33d42b0a8"><span class="d">Sep 24, 2026</span><span class="t">A Software Engineer’s Intuition for Gradient Descent, Part 2: The Step Size</span></a></li>
+          <li><a href="https://medium.com/@wei.rui828/tigers-ghosting-and-bayes-theorem-ae2c70c9364f"><span class="d">Jun 11, 2026</span><span class="t">Tigers, Ghosting, and Bayes’ Theorem</span></a></li>
+          <li><a href="https://medium.com/@wei.rui828/logistic-regression-is-just-linear-regression-with-a-midlife-crisis-38dfc980a72f"><span class="d">May 26, 2026</span><span class="t">Logistic Regression is Just Linear Regression with a Midlife Crisis</span></a></li>
+          <li><a href="https://medium.com/@wei.rui828/mastering-the-precision-recall-trade-off-a-tale-of-customer-support-and-real-estate-318f863b7ded"><span class="d">May 20, 2026</span><span class="t">Mastering the Precision-Recall Trade-Off: A Tale of Customer Support and Real Estate</span></a></li>
+          <li><a href="https://medium.com/@wei.rui828/forget-the-formulas-an-intuitive-guide-to-time-series-modeling-arma-4e30ee08b276"><span class="d">Apr 28, 2026</span><span class="t">Forget the Formulas: An Intuitive Guide to Time Series Modeling (ARMA)</span></a></li>
+          <li><a href="https://medium.com/@wei.rui828/how-context-poisoning-is-rotting-your-codebase-in-the-age-of-ai-be7b082b69a9"><span class="d">Dec 22, 2025</span><span class="t">How “Context Poisoning” is Rotting Your Codebase in the Age of AI</span></a></li>
+        </ul>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="end">
+    <div class="wrap">
+      <div>
+        <h2>Beyond work</h2>
+        <p>I also take photographs and keep a map of everywhere I've been. That side lives on my personal site, <a href="../">weiniverse.com</a>.</p>
+      </div>
+      <div class="icons">
+        <a href="https://www.linkedin.com/in/wei-rui" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
+        <a href="https://github.com/weirui828" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a>
+        <a href="https://medium.com/@wei.rui828" aria-label="Medium" title="Medium"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/></svg></a>
+      </div>
+    </div>
+    <div class="wrap"><small>© 2026 Wei Rui</small></div>
+  </footer>
+
+  <script>
+    // Underline the section you're reading in the top bar
+    (() => {
+      const links = [...document.querySelectorAll(".bar nav a")];
+      const byId = new Map(links.map(a => [a.getAttribute("href").slice(1), a]));
+      const seen = new Map();
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => seen.set(e.target.id, e.isIntersecting));
+        const on = [...byId.keys()].find(id => seen.get(id));
+        links.forEach(a => a.removeAttribute("aria-current"));
+        if (on) byId.get(on).setAttribute("aria-current", "true");
+      }, { rootMargin: "-40% 0px -55% 0px" });
+      byId.forEach((_, id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+
+      // A link to a deep dive opens it
+      const openFromHash = () => {
+        const el = document.getElementById(location.hash.slice(1));
+        el?.querySelector("details")?.setAttribute("open", "");
+      };
+      addEventListener("hashchange", openFromHash);
+      openFromHash();
+    })();
+  </script>
+</body>
+</html>
