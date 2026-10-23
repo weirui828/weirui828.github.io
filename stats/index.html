@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Unlinked for now: keep search engines away -->
+  <meta name="robots" content="noindex" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#05060f" />
+  <title>Visitor Stats · Weiniverse</title>
+  <meta name="description" content="How many people visit weiniverse.com, which pages they read, and where they come from." />
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Same colors and fonts as the home page */
+    :root {
+      --bg: #05060f;
+      --text: #e8ebff;
+      --muted: #9ba1c5;
+      --faint: #777ca3;
+      --glass: rgba(255, 255, 255, .04);
+      --glass-hover: rgba(255, 255, 255, .07);
+      --line: rgba(255, 255, 255, .09);
+      --violet: #a78bfa;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scrollbar-gutter: stable; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(60vw 45vh at 15% 0%, rgba(124, 58, 237, .18), transparent 70%),
+        radial-gradient(50vw 40vh at 90% 20%, rgba(34, 211, 238, .08), transparent 70%),
+        var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+
+    main { max-width: 880px; margin: 0 auto; padding: 56px 16px 64px; }
+
+    .back { font-size: .875rem; color: var(--muted); text-decoration: none; }
+    .back:hover { color: var(--text); }
+
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(1.75rem, 5vw, 2.25rem);
+      font-weight: 600;
+      margin: 16px 0 6px;
+    }
+    .lede { color: var(--muted); max-width: 60ch; }
+
+    /* ---------- Range buttons ---------- */
+    .range { display: flex; gap: 6px; margin: 28px 0 20px; flex-wrap: wrap; }
+    .range button {
+      font: inherit;
+      font-size: .875rem;
+      color: var(--muted);
+      background: var(--glass);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 14px;
+      cursor: pointer;
+    }
+    .range button:hover { background: var(--glass-hover); color: var(--text); }
+    .range button[aria-pressed="true"] { color: var(--text); border-color: var(--violet); }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    /* ---------- Totals ---------- */
+    .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .tile .label { font-size: .8125rem; color: var(--muted); }
+    .tile .value {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 2rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    h2 { font-family: "Space Grotesk", sans-serif; font-size: 1.0625rem; font-weight: 600; margin-bottom: 12px; }
+    section { margin-top: 12px; }
+
+    /* ---------- Daily chart ---------- */
+    .chart { position: relative; }
+    .chart svg { display: block; width: 100%; height: 200px; overflow: visible; }
+    .chart .grid { stroke: var(--line); stroke-width: 1; }
+    .chart .axis { fill: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .chart .bar { fill: var(--violet); pointer-events: none; }
+    .chart .hit { fill: transparent; }
+    .chart .hit:hover + .bar { fill: #c4b5fd; }
+    .tip {
+      position: absolute;
+      pointer-events: none;
+      background: #141629;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: .8125rem;
+      white-space: nowrap;
+      transform: translate(-50%, calc(-100% - 8px));
+      display: none;
+    }
+    .tip b { font-weight: 600; }
+    .tip span { color: var(--muted); }
+    details { margin-top: 12px; font-size: .875rem; color: var(--muted); }
+    summary { cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; }
+    th, td { text-align: left; padding: 4px 0; border-bottom: 1px solid var(--line); }
+    th:not(:first-child), td:not(:first-child) { text-align: right; }
+
+    /* ---------- Top lists ---------- */
+    .lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .list { list-style: none; }
+    .list li {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 5px 8px;
+      font-size: .875rem;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .list li + li { margin-top: 2px; }
+    .list .fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: rgba(167, 139, 250, .16);
+      border-radius: 0 4px 4px 0;
+      z-index: 0;
+    }
+    .list .name, .list .num { position: relative; z-index: 1; }
+    .list .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .list .num { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .empty { color: var(--faint); font-size: .875rem; }
+
+    footer { margin-top: 28px; font-size: .8125rem; color: var(--faint); }
+    footer label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; margin-top: 8px; }
+    .status { color: var(--muted); margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back" href="../">← weiniverse.com</a>
+    <h1>Visitor stats</h1>
+    <p class="lede">How many people visit this site, which pages they read, and where they come from. No cookies, and no IP addresses are stored.</p>
+
+    <div class="range" role="group" aria-label="Time range">
+      <button type="button" data-days="7">7 days</button>
+      <button type="button" data-days="30" aria-pressed="true">30 days</button>
+      <button type="button" data-days="90">90 days</button>
+      <button type="button" data-days="365">1 year</button>
+    </div>
+
+    <p class="status" id="status">Loading…</p>
+
+    <div id="report" hidden>
+      <div class="totals">
+        <div class="card tile"><div class="label">Visitors</div><div class="value" id="visitors">–</div></div>
+        <div class="card tile"><div class="label">Page views</div><div class="value" id="views">–</div></div>
+        <div class="card tile"><div class="label">Views per visitor</div><div class="value" id="per">–</div></div>
+      </div>
+
+      <section class="card">
+        <h2>Page views per day</h2>
+        <div class="chart" id="chart"><div class="tip" id="tip"></div></div>
+        <details>
+          <summary>Show as a table</summary>
+          <table id="table"><thead><tr><th>Day</th><th>Visitors</th><th>Page views</th></tr></thead><tbody></tbody></table>
+        </details>
+      </section>
+
+      <div class="lists">
+        <section class="card"><h2>Pages</h2><ul class="list" id="pages"></ul></section>
+        <section class="card"><h2>Referrers</h2><ul class="list" id="referrers"></ul></section>
+        <section class="card"><h2>Countries</h2><ul class="list" id="countries"></ul></section>
+      </div>
+    </div>
+
+    <footer>
+      Days are counted in UTC. A visitor is counted once per day.
+      <br />
+      <label><input type="checkbox" id="ignore" /> Don't count my visits on this browser</label>
+    </footer>
+  </main>
+
+  <script>
+    const API = "https://weiniverse-stats.aug828.workers.dev/stats";
+    const fmt = new Intl.NumberFormat("en");
+    const countryName = new Intl.DisplayNames(["en"], { type: "region" });
+    const $ = (id) => document.getElementById(id);
+
+    // Every day in the range, so days with no views still show as gaps
+    function allDays(since, days) {
+      const out = [];
+      const start = new Date(since + "T00:00:00Z");
+      for (let i = 0; i < days; i++) out.push(new Date(start.getTime() + i * 86400000).toISOString().slice(0, 10));
+      return out;
+    }
+
+    function shortDay(day) {
+      return new Date(day + "T00:00:00Z").toLocaleDateString("en", { month: "short", day: "numeric", timeZone: "UTC" });
+    }
+
+    function drawChart(data) {
+      const byDay = Object.fromEntries(data.daily.map((d) => [d.day, d]));
+      const rows = allDays(data.since, data.days).map((day) => byDay[day] || { day, views: 0, visitors: 0 });
+      const max = Math.max(1, ...rows.map((r) => r.views));
+      // A rounded-up top for the scale, so the gridlines land on whole numbers
+      const step = Math.pow(10, Math.floor(Math.log10(max)));
+      const top = Math.ceil(max / step) * step;
+
+      const chart = $("chart");
+      const W = chart.clientWidth || 800, H = 200, left = 36, bottom = 22, plotH = H - bottom - 8;
+      const slot = (W - left) / rows.length;
+      const gap = rows.length > 120 ? 0 : 2;
+      const barW = Math.max(1, slot - gap);
+      const y = (v) => 8 + plotH - (v / top) * plotH;
+
+      let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Page views per day">`;
+      for (const v of [0, top / 2, top]) {
+        svg += `<line class="grid" x1="${left}" x2="${W}" y1="${y(v)}" y2="${y(v)}" />`;
+        svg += `<text class="axis" x="${left - 6}" y="${y(v) + 4}" text-anchor="end">${fmt.format(v)}</text>`;
+      }
+      const labelEvery = Math.ceil(rows.length / 6);
+      rows.forEach((r, i) => {
+        const x = left + i * slot + gap / 2;
+        const h = (r.views / top) * plotH;
+        const rx = Math.min(4, barW / 2, h);
+        // Hit area spans the full column, wider than the bar itself
+        svg += `<rect class="hit" data-i="${i}" x="${left + i * slot}" y="8" width="${slot}" height="${plotH}" />`;
+        svg += h > 0
+          ? `<path class="bar" d="M${x},${y(0)} V${y(r.views) + rx} q0,-${rx} ${rx},-${rx} h${barW - 2 * rx} q${rx},0 ${rx},${rx} V${y(0)} Z" />`
+          : `<path class="bar" d="" />`;
+        if (i % labelEvery === 0) svg += `<text class="axis" x="${x + barW / 2}" y="${H - 4}" text-anchor="middle">${shortDay(r.day)}</text>`;
+      });
+      svg += `</svg>`;
+
+      chart.querySelector("svg")?.remove();
+      chart.insertAdjacentHTML("afterbegin", svg);
+
+      const tip = $("tip");
+      const el = chart.querySelector("svg");
+      el.addEventListener("mousemove", (e) => {
+        const i = e.target.dataset?.i;
+        if (i === undefined) return (tip.style.display = "none");
+        const r = rows[i];
+        tip.innerHTML = `<b>${shortDay(r.day)}</b><br />${fmt.format(r.views)} <span>views</span> · ${fmt.format(r.visitors)} <span>visitors</span>`;
+        const box = chart.getBoundingClientRect();
+        const colX = left + (+i + 0.5) * slot;
+        tip.style.left = Math.min(Math.max(colX, 70), box.width - 70) + "px";
+        tip.style.top = y(r.views) + "px";
+        tip.style.display = "block";
+      });
+      el.addEventListener("mouseleave", () => (tip.style.display = "none"));
+
+      $("table").tBodies[0].innerHTML = rows.slice().reverse()
+        .map((r) => `<tr><td>${shortDay(r.day)}</td><td>${fmt.format(r.visitors)}</td><td>${fmt.format(r.views)}</td></tr>`)
+        .join("");
+    }
+
+    function drawList(id, items, label = (n) => n) {
+      const list = $(id);
+      if (!items.length) return (list.innerHTML = `<li class="empty">Nothing yet</li>`);
+      const max = items[0].views;
+      list.innerHTML = items.map((it) => {
+        const text = String(label(it.name)).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+        return `<li><span class="fill" style="width:${(it.views / max) * 100}%"></span>` +
+          `<span class="name" title="${text}">${text}</span><span class="num">${fmt.format(it.views)}</span></li>`;
+      }).join("");
+    }
+
+    async function load(days) {
+      document.querySelectorAll(".range button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
+      try {
+        const res = await fetch(`${API}?days=${days}`);
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+        const { views, visitors } = data.totals;
+        $("visitors").textContent = fmt.format(visitors);
+        $("views").textContent = fmt.format(views);
+        $("per").textContent = visitors ? (views / visitors).toFixed(1) : "–";
+        drawChart((lastData = data));
+        drawList("pages", data.pages);
+        drawList("referrers", data.referrers);
+        drawList("countries", data.countries, (c) => { try { return countryName.of(c); } catch { return c; } });
+        $("status").hidden = true;
+        $("report").hidden = false;
+      } catch (e) {
+        $("status").textContent = "The stats could not be loaded. Try again later.";
+      }
+    }
+
+    // Redraw at the new width, so the chart text never stretches
+    let lastData;
+    addEventListener("resize", () => lastData && drawChart(lastData));
+
+    document.querySelectorAll(".range button").forEach((b) => b.addEventListener("click", () => load(+b.dataset.days)));
+
+    // Opting out sets a flag that the tracking snippet on every page checks
+    const ignore = $("ignore");
+    try { ignore.checked = !!localStorage.getItem("stats-ignore"); } catch (e) {}
+    ignore.addEventListener("change", () => {
+      try { ignore.checked ? localStorage.setItem("stats-ignore", "1") : localStorage.removeItem("stats-ignore"); } catch (e) {}
+    });
+
+    load(30);
+  </script>
+</body>
+</html>

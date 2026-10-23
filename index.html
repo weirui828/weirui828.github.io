@@ -2664,5 +2664,13 @@
       });
     });
   </script>
+  <!-- Visitor stats: one anonymous page view per load, no cookies (see /stats/) -->
+  <script>
+    (function () {
+      try { if (localStorage.getItem("stats-ignore")) return; } catch (e) {}
+      if (!/(^|\.)weiniverse\.com$|\.github\.io$/.test(location.hostname)) return;
+      navigator.sendBeacon("https://weiniverse-stats.aug828.workers.dev/hit", JSON.stringify({ p: location.pathname, r: document.referrer }));
+    })();
+  </script>
 </body>
 </html>
