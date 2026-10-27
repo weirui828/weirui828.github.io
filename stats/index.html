@@ -250,23 +250,13 @@
     .city-pin { cursor: pointer; }
     .city-pin .pin-dot {
       fill: var(--cyan);
-      filter: drop-shadow(0 0 4px var(--cyan));
+      filter: drop-shadow(0 0 5px var(--cyan));
       transition: r .2s ease;
     }
     .city-pin:hover .pin-dot {
       r: 5;
       fill: #ffffff;
       filter: drop-shadow(0 0 8px var(--cyan));
-    }
-    .city-pin .pin-pulse {
-      transform-origin: center;
-      animation: pinPulse 2.4s infinite cubic-bezier(.215, .61, .355, 1);
-      pointer-events: none;
-    }
-    @keyframes pinPulse {
-      0% { transform: scale(0.6); opacity: 1; }
-      70% { transform: scale(2.2); opacity: 0; }
-      100% { transform: scale(2.2); opacity: 0; }
     }
     .map-tip {
       position: absolute;
@@ -639,7 +629,10 @@
           if (isNaN(cx) || isNaN(cy)) continue;
 
           pinsHtml += `<g class="city-pin" data-city="${city.city}" data-region="${city.region || ''}" data-country="${city.country}" data-views="${city.views}">` +
-            `<circle class="pin-pulse" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="6" stroke="var(--cyan)" fill="none" stroke-width="1.2" />` +
+            `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3" fill="none" stroke="var(--cyan)" stroke-width="1.2">` +
+              `<animate attributeName="r" from="3" to="12" dur="2.2s" repeatCount="indefinite" />` +
+              `<animate attributeName="opacity" from="0.8" to="0" dur="2.2s" repeatCount="indefinite" />` +
+            `</circle>` +
             `<circle class="pin-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3" />` +
           `</g>`;
         }
