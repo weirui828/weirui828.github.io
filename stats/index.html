@@ -8,7 +8,7 @@
   <meta name="color-scheme" content="dark" />
   <meta name="theme-color" content="#05060f" />
   <title>Visitor Stats · Weiniverse</title>
-  <meta name="description" content="How many people visit weiniverse.com, which pages they read, and where they come from." />
+  <meta name="description" content="Visitor statistics for weiniverse.com. No cookies, and no IP addresses are stored." />
   <link rel="icon" href="../assets/icon.svg" type="image/svg+xml" />
   <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
@@ -151,6 +151,7 @@
       white-space: nowrap;
       transform: translate(-50%, calc(-100% - 8px));
       display: none;
+      z-index: 10;
     }
     .tip b { font-weight: 600; }
     .tip span { color: var(--muted); }
@@ -168,10 +169,11 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      padding: 5px 8px;
+      padding: 6px 10px;
       font-size: .875rem;
       border-radius: 6px;
       overflow: hidden;
+      transition: background .15s ease;
     }
     .list li + li { margin-top: 2px; }
     .list .fill {
@@ -184,103 +186,104 @@
     .list .name, .list .num { position: relative; z-index: 1; }
     .list .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .list .num { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .list li.highlighted {
+      background: rgba(167, 139, 250, .2);
+      outline: 1px solid var(--violet);
+    }
     .empty { color: var(--faint); font-size: .875rem; }
 
-    /* ---------- Geo Accordion ---------- */
+    /* ---------- Choropleth Map & City Pins ---------- */
+    .map-card { padding: 16px; margin-bottom: 12px; }
     .geo-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
-    .geo-hint { font-size: .8125rem; color: var(--muted); }
-    .geo-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .geo-card {
-      background: rgba(255, 255, 255, .02);
-      border: 1px solid var(--line);
+    .geo-header h2 { margin-bottom: 0; }
+    .map-legend-pills {
+      display: flex;
+      gap: 12px;
+      font-size: .8125rem;
+      color: var(--muted);
+    }
+    .legend-pill { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-pill i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .legend-pill .dot-violet { background: var(--violet); box-shadow: 0 0 6px var(--violet); }
+    .legend-pill .dot-cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+
+    .map-svg-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      background: rgba(0, 0, 0, .2);
       border-radius: 12px;
       overflow: hidden;
-      transition: border-color .2s;
+      border: 1px solid rgba(255, 255, 255, .05);
     }
-    .geo-card[open] {
-      border-color: rgba(167, 139, 250, .4);
+    .map-svg-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
-    .geo-summary {
-      list-style: none;
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      font-size: .9375rem;
+    .country-path {
+      fill: rgba(255, 255, 255, .05);
+      stroke: rgba(255, 255, 255, .08);
+      stroke-width: 0.5;
+      transition: fill .2s ease, stroke .2s ease;
+    }
+    .country-path.has-visits {
       cursor: pointer;
-      user-select: none;
     }
-    .geo-summary::-webkit-details-marker { display: none; }
-    .geo-summary .fill {
+    .country-path.has-visits:hover, .country-path.active {
+      fill: #c4b5fd !important;
+      stroke: #ffffff !important;
+      stroke-width: 1 !important;
+    }
+    .city-pin { cursor: pointer; }
+    .city-pin .pin-dot {
+      fill: var(--cyan);
+      filter: drop-shadow(0 0 4px var(--cyan));
+      transition: r .2s ease;
+    }
+    .city-pin:hover .pin-dot {
+      r: 5;
+      fill: #ffffff;
+      filter: drop-shadow(0 0 8px var(--cyan));
+    }
+    .city-pin .pin-pulse {
+      transform-origin: center;
+      animation: pinPulse 2.4s infinite cubic-bezier(.215, .61, .355, 1);
+      pointer-events: none;
+    }
+    @keyframes pinPulse {
+      0% { transform: scale(0.6); opacity: 1; }
+      70% { transform: scale(2.2); opacity: 0; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+    .map-tip {
       position: absolute;
-      inset: 0 auto 0 0;
-      background: rgba(167, 139, 250, .14);
-      z-index: 0;
+      pointer-events: none;
+      background: #141629;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: .8125rem;
+      white-space: nowrap;
+      transform: translate(-50%, calc(-100% - 10px));
+      display: none;
+      z-index: 20;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .5);
     }
-    .geo-summary .country-label {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 500;
-    }
-    .geo-summary .meta {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--muted);
-      font-variant-numeric: tabular-nums;
-    }
-    .geo-chevron {
-      display: inline-block;
-      font-size: .75rem;
-      color: var(--faint);
-      transition: transform .2s ease;
-    }
-    .geo-card[open] .geo-chevron {
-      transform: rotate(90deg);
-    }
-    .city-list {
-      list-style: none;
-      padding: 8px 14px 12px;
-      border-top: 1px solid var(--line);
-      background: rgba(0, 0, 0, .2);
-    }
-    .city-list li {
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 10px;
-      font-size: .875rem;
-      border-radius: 6px;
-      margin-top: 2px;
-      overflow: hidden;
-    }
-    .city-list .fill {
-      position: absolute;
-      inset: 0 auto 0 0;
-      background: rgba(34, 211, 238, .12);
-      border-radius: 4px;
-      z-index: 0;
-    }
-    .city-list .city-name, .city-list .city-num {
-      position: relative;
-      z-index: 1;
-    }
-    .city-list .city-num {
-      color: var(--muted);
-      font-variant-numeric: tabular-nums;
-    }
-    .city-region { color: var(--faint); font-size: .8125rem; margin-left: 6px; }
+    .map-tip b { font-weight: 600; }
+    .map-tip span.dim { color: var(--muted); }
 
     /* ---------- Tab Panels ---------- */
     .tab-panel[hidden] { display: none; }
@@ -289,6 +292,10 @@
     footer label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; margin-top: 8px; }
     .status { color: var(--muted); margin-top: 20px; }
   </style>
+
+  <!-- Pinned D3 and TopoJSON libraries with integrity hashes -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
 </head>
 <body>
   <main>
@@ -339,15 +346,36 @@
         </div>
       </div>
 
-      <!-- TAB 2: GEO (Country -> City drilldown) -->
+      <!-- TAB 2: GEO (Choropleth Map + City Pins & Hybrid Lists) -->
       <div id="panel-geo" class="tab-panel" role="tabpanel" aria-labelledby="tab-geo" hidden>
-        <section class="card">
+        <section class="card map-card">
           <div class="geo-header">
-            <h2>Traffic by Country &amp; City</h2>
-            <span class="geo-hint">Click a country to view cities</span>
+            <h2>Visitor Map</h2>
+            <div class="map-legend-pills">
+              <span class="legend-pill"><i class="dot-violet"></i> Countries</span>
+              <span class="legend-pill"><i class="dot-cyan"></i> Cities</span>
+            </div>
           </div>
-          <div id="geo-drilldown"></div>
+          <div class="map-svg-wrap" id="map-wrap">
+            <svg id="world-map" viewBox="0 0 960 480" role="img" aria-label="Interactive world visitor map">
+              <rect width="960" height="480" fill="transparent" />
+              <g id="map-countries"></g>
+              <g id="map-pins"></g>
+            </svg>
+            <div class="map-tip" id="map-tip"></div>
+          </div>
         </section>
+
+        <div class="lists">
+          <section class="card">
+            <h2>Countries</h2>
+            <ul class="list" id="geo-countries"></ul>
+          </section>
+          <section class="card">
+            <h2>Cities</h2>
+            <ul class="list" id="geo-cities"></ul>
+          </section>
+        </div>
       </div>
 
       <!-- TAB 3: OTHER / SYSTEMS -->
@@ -386,9 +414,33 @@
 
   <script>
     const API = "https://weiniverse-stats.aug828.workers.dev/stats";
+    const WORLD_ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json";
     const fmt = new Intl.NumberFormat("en");
     const countryName = new Intl.DisplayNames(["en"], { type: "region" });
     const $ = (id) => document.getElementById(id);
+
+    // Standard ISO 3166-1 numeric code to ISO 3166-1 alpha-2 mapping
+    const NUMERIC_TO_A2 = {
+      "004":"AF","008":"AL","012":"DZ","024":"AO","032":"AR","051":"AM","036":"AU","040":"AT","031":"AZ",
+      "044":"BS","050":"BD","052":"BB","112":"BY","056":"BE","084":"BZ","204":"BJ","064":"BT","068":"BO",
+      "070":"BA","072":"BW","076":"BR","096":"BN","100":"BG","854":"BF","108":"BI","116":"KH","120":"CM",
+      "124":"CA","140":"CF","148":"TD","152":"CL","156":"CN","170":"CO","178":"CG","180":"CD","188":"CR",
+      "384":"CI","191":"HR","192":"CU","196":"CY","203":"CZ","208":"DK","262":"DJ","214":"DO","218":"EC",
+      "818":"EG","222":"SV","226":"GQ","232":"ER","233":"EE","231":"ET","242":"FJ","246":"FI","250":"FR",
+      "266":"GA","270":"GM","268":"GE","276":"DE","288":"GH","300":"GR","320":"GT","324":"GN","624":"GW",
+      "328":"GY","332":"HT","340":"HN","348":"HU","352":"IS","356":"IN","360":"ID","364":"IR","368":"IQ",
+      "372":"IE","376":"IL","380":"IT","388":"JM","392":"JP","400":"JO","398":"KZ","404":"KE","408":"KP",
+      "410":"KR","414":"KW","417":"KG","418":"LA","428":"LV","422":"LB","426":"LS","430":"LR","434":"LY",
+      "440":"LT","442":"LU","807":"MK","450":"MG","454":"MW","458":"MY","466":"ML","478":"MR","484":"MX",
+      "498":"MD","496":"MN","499":"ME","504":"MA","508":"MZ","104":"MM","516":"NA","524":"NP","528":"NL",
+      "554":"NZ","558":"NI","562":"NE","566":"NG","578":"NO","512":"OM","586":"PK","591":"PA","598":"PG",
+      "600":"PY","604":"PE","608":"PH","616":"PL","620":"PT","630":"PR","634":"QA","642":"RO","643":"RU",
+      "646":"RW","682":"SA","686":"SN","688":"RS","694":"SL","702":"SG","703":"SK","705":"SI","706":"SO",
+      "710":"ZA","728":"SS","724":"ES","144":"LK","729":"SD","740":"SR","748":"SZ","752":"SE","756":"CH",
+      "760":"SY","762":"TJ","834":"TZ","764":"TH","626":"TL","768":"TG","780":"TT","788":"TN","792":"TR",
+      "795":"TM","800":"UG","804":"UA","784":"AE","826":"GB","840":"US","858":"UY","860":"UZ","862":"VE",
+      "704":"VN","732":"EH","887":"YE","894":"ZM","716":"ZW","158":"TW","982":"XK"
+    };
 
     function getFlagEmoji(countryCode) {
       if (!countryCode || countryCode.length !== 2) return "";
@@ -482,71 +534,9 @@
       const max = items[0].views;
       list.innerHTML = items.map((it) => {
         const text = String(label(it.name)).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-        return `<li><span class="fill" style="width:${(it.views / max) * 100}%"></span>` +
+        return `<li data-code="${it.name}"><span class="fill" style="width:${(it.views / max) * 100}%"></span>` +
           `<span class="name" title="${text}">${text}</span><span class="num">${fmt.format(it.views)}</span></li>`;
       }).join("");
-    }
-
-    function drawGeo(data) {
-      const container = $("geo-drilldown");
-      const countries = data.countries || [];
-      const cities = data.cities || [];
-      if (!countries.length) {
-        container.innerHTML = `<p class="empty">No geographic data recorded for this time range.</p>`;
-        return;
-      }
-
-      // Group cities by country
-      const citiesByCountry = {};
-      for (const c of cities) {
-        if (!citiesByCountry[c.country]) citiesByCountry[c.country] = [];
-        citiesByCountry[c.country].push(c);
-      }
-
-      const totalGeoViews = countries.reduce((sum, c) => sum + c.views, 0);
-      const maxCountryViews = Math.max(1, ...countries.map((c) => c.views));
-
-      container.innerHTML = `<div class="geo-list">` +
-        countries.map((c, idx) => {
-          const list = citiesByCountry[c.name] || [];
-          const knownCityViews = list.reduce((s, it) => s + it.views, 0);
-          const remainder = c.views - knownCityViews;
-          const countryLabel = formatCountry(c.name);
-          const percent = ((c.views / totalGeoViews) * 100).toFixed(0);
-
-          let citiesHtml = "";
-          if (list.length > 0) {
-            const maxCity = Math.max(...list.map((it) => it.views), remainder > 0 ? remainder : 0);
-            citiesHtml = list.map((city) => {
-              const regionText = city.region ? `<span class="city-region">${city.region}</span>` : "";
-              const w = ((city.views / maxCity) * 100).toFixed(1);
-              return `<li><span class="fill" style="width:${w}%"></span>` +
-                `<span class="city-name">${city.city}${regionText}</span><span class="city-num">${fmt.format(city.views)}</span></li>`;
-            }).join("");
-
-            if (remainder > 0) {
-              const w = ((remainder / maxCity) * 100).toFixed(1);
-              citiesHtml += `<li><span class="fill" style="width:${w}%"></span>` +
-                `<span class="city-name" style="color:var(--muted); font-style:italic">Other / earlier visits</span><span class="city-num">${fmt.format(remainder)}</span></li>`;
-            }
-          } else {
-            citiesHtml = `<li style="color:var(--faint); font-size:.8125rem;">Cities not recorded for earlier visits in this country</li>`;
-          }
-
-          // Automatically expand the first country if it's the only one or has views
-          const openAttr = idx === 0 ? "open" : "";
-          const barWidth = ((c.views / maxCountryViews) * 100).toFixed(1);
-
-          return `<details class="geo-card" ${openAttr}>` +
-            `<summary class="geo-summary">` +
-              `<span class="fill" style="width:${barWidth}%"></span>` +
-              `<span class="country-label">${countryLabel}</span>` +
-              `<span class="meta"><span>${fmt.format(c.views)} views (${percent}%)</span><span class="geo-chevron">▶</span></span>` +
-            `</summary>` +
-            `<ul class="city-list">${citiesHtml}</ul>` +
-          `</details>`;
-        }).join("") +
-      `</div>`;
     }
 
     function drawScrolls(scrolls) {
@@ -583,6 +573,158 @@
       $("deep-scroll").textContent = total ? `${Math.round((deep / total) * 100)}%` : "–";
     }
 
+    /* ---------- Choropleth Map & City Pins Renderer ---------- */
+    let worldTopology = null;
+    let mapProjection = null;
+    let mapPath = null;
+
+    async function ensureWorldTopology() {
+      if (worldTopology) return worldTopology;
+      const res = await fetch(WORLD_ATLAS_URL);
+      if (!res.ok) throw new Error("Could not load world atlas");
+      worldTopology = await res.json();
+      return worldTopology;
+    }
+
+    async function drawMap(data) {
+      const countriesGroup = $("map-countries");
+      const pinsGroup = $("map-pins");
+      const tip = $("map-tip");
+      const mapWrap = $("map-wrap");
+
+      try {
+        const world = await ensureWorldTopology();
+        const countriesGeo = topojson.feature(world, world.objects.countries).features;
+
+        const W = 960, H = 480;
+        if (!mapProjection) {
+          mapProjection = d3.geoNaturalEarth1().fitSize([W, H], { type: "Sphere" });
+          mapPath = d3.geoPath(mapProjection);
+        }
+
+        const countryViews = Object.fromEntries((data.countries || []).map((c) => [c.name, c.views]));
+        const maxViews = Math.max(1, ...(data.countries || []).map((c) => c.views));
+
+        // 1. Draw Country Choropleth
+        let countriesHtml = "";
+        for (const feature of countriesGeo) {
+          const a2 = NUMERIC_TO_A2[String(feature.id).padStart(3, "0")];
+          const views = a2 ? (countryViews[a2] || 0) : 0;
+          const d = mapPath(feature);
+          if (!d) continue;
+
+          let fill = "rgba(255, 255, 255, .05)";
+          let stroke = "rgba(255, 255, 255, .08)";
+          let cls = "country-path";
+
+          if (views > 0) {
+            // Violet intensity ramp based on views
+            const intensity = 0.25 + 0.65 * (views / maxViews);
+            fill = `rgba(167, 139, 250, ${intensity.toFixed(2)})`;
+            stroke = "rgba(167, 139, 250, 0.7)";
+            cls += " has-visits";
+          }
+
+          countriesHtml += `<path class="${cls}" d="${d}" fill="${fill}" stroke="${stroke}" ` +
+            `data-code="${a2 || ''}" data-name="${a2 ? formatCountry(a2) : feature.properties.name}" data-views="${views}" />`;
+        }
+        countriesGroup.innerHTML = countriesHtml;
+
+        // 2. Draw City Pins
+        let pinsHtml = "";
+        const cities = data.cities || [];
+        for (const city of cities) {
+          if (city.lat == null || city.lon == null) continue;
+          const [cx, cy] = mapProjection([city.lon, city.lat]);
+          if (isNaN(cx) || isNaN(cy)) continue;
+
+          pinsHtml += `<g class="city-pin" data-city="${city.city}" data-region="${city.region || ''}" data-country="${city.country}" data-views="${city.views}">` +
+            `<circle class="pin-pulse" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="6" stroke="var(--cyan)" fill="none" stroke-width="1.2" />` +
+            `<circle class="pin-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3" />` +
+          `</g>`;
+        }
+        pinsGroup.innerHTML = pinsHtml;
+
+        // 3. Tooltip handling
+        const svg = $("world-map");
+
+        svg.onmousemove = (e) => {
+          const target = e.target.closest(".city-pin") || e.target.closest(".country-path.has-visits");
+          if (!target) {
+            tip.style.display = "none";
+            document.querySelectorAll("#geo-countries li.highlighted").forEach((el) => el.classList.remove("highlighted"));
+            return;
+          }
+
+          const wrapRect = mapWrap.getBoundingClientRect();
+          const mouseX = e.clientX - wrapRect.left;
+          const mouseY = e.clientY - wrapRect.top;
+
+          if (target.classList.contains("city-pin")) {
+            const city = target.dataset.city;
+            const region = target.dataset.region ? `, ${target.dataset.region}` : "";
+            const flag = getFlagEmoji(target.dataset.country);
+            const views = target.dataset.views;
+            tip.innerHTML = `<b>${flag} ${city}</b><span class="dim">${region}</span><br />${fmt.format(views)} <span>views</span>`;
+          } else {
+            const name = target.dataset.name;
+            const views = target.dataset.views;
+            const code = target.dataset.code;
+            tip.innerHTML = `<b>${name}</b><br />${fmt.format(views)} <span>views</span>`;
+
+            // Highlight corresponding list item
+            document.querySelectorAll("#geo-countries li.highlighted").forEach((el) => el.classList.remove("highlighted"));
+            const li = document.querySelector(`#geo-countries li[data-code="${code}"]`);
+            if (li) li.classList.add("highlighted");
+          }
+
+          tip.style.left = Math.min(Math.max(mouseX, 80), wrapRect.width - 80) + "px";
+          tip.style.top = mouseY + "px";
+          tip.style.display = "block";
+        };
+
+        svg.onmouseleave = () => {
+          tip.style.display = "none";
+          document.querySelectorAll("#geo-countries li.highlighted").forEach((el) => el.classList.remove("highlighted"));
+        };
+
+        // 4. Populate hybrid lists below the map
+        drawList("geo-countries", data.countries || [], formatCountry);
+
+        // Cities list
+        const cityList = $("geo-cities");
+        if (!cities.length) {
+          cityList.innerHTML = `<li class="empty">No city data recorded yet</li>`;
+        } else {
+          const maxCity = Math.max(1, ...cities.map((c) => c.views));
+          cityList.innerHTML = cities.map((c) => {
+            const flag = getFlagEmoji(c.country);
+            const region = c.region ? ` <span style="color:var(--faint);font-size:.8125rem;">(${c.region})</span>` : "";
+            const label = `${flag} ${c.city}${region}`;
+            return `<li><span class="fill" style="width:${(c.views / maxCity) * 100}%"></span>` +
+              `<span class="name" title="${c.city}">${label}</span><span class="num">${fmt.format(c.views)}</span></li>`;
+          }).join("");
+        }
+
+        // Add interactive hover from list to map
+        document.querySelectorAll("#geo-countries li").forEach((li) => {
+          li.onmouseenter = () => {
+            const code = li.dataset.code;
+            const path = document.querySelector(`.country-path[data-code="${code}"]`);
+            if (path) path.classList.add("active");
+          };
+          li.onmouseleave = () => {
+            const code = li.dataset.code;
+            const path = document.querySelector(`.country-path[data-code="${code}"]`);
+            if (path) path.classList.remove("active");
+          };
+        });
+
+      } catch (err) {
+        console.error("Map rendering error:", err);
+      }
+    }
+
     // Tab switching
     const tabButtons = document.querySelectorAll('.tabs button[role="tab"]');
     const tabPanels = document.querySelectorAll(".tab-panel");
@@ -596,9 +738,11 @@
         const active = panel.getAttribute("aria-labelledby") === targetId;
         panel.hidden = !active;
       });
-      // If switching to summary while chart exists, resize chart
       if (targetId === "tab-summary" && lastData) {
         requestAnimationFrame(() => drawChart(lastData));
+      }
+      if (targetId === "tab-geo" && lastData) {
+        requestAnimationFrame(() => drawMap(lastData));
       }
     }
 
@@ -636,7 +780,7 @@
         drawList("referrers", data.referrers);
         drawList("countries", data.countries, formatCountry);
 
-        drawGeo(data);
+        drawMap(data);
 
         drawList("devices", data.devices);
         drawList("os", data.os);
