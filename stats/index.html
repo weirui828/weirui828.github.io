@@ -27,6 +27,7 @@
       --glass-hover: rgba(255, 255, 255, .07);
       --line: rgba(255, 255, 255, .09);
       --violet: #a78bfa;
+      --cyan: #22d3ee;
       --radius: 18px;
     }
 
@@ -59,8 +60,44 @@
     }
     .lede { color: var(--muted); max-width: 60ch; }
 
-    /* ---------- Range buttons ---------- */
-    .range { display: flex; gap: 6px; margin: 28px 0 20px; flex-wrap: wrap; }
+    /* ---------- Controls (Tabs + Range) ---------- */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin: 28px 0 20px;
+      flex-wrap: wrap;
+    }
+    .tabs {
+      display: inline-flex;
+      gap: 3px;
+      background: rgba(255, 255, 255, .03);
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+    }
+    .tabs button {
+      font: inherit;
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-radius: 999px;
+      padding: 6px 16px;
+      cursor: pointer;
+      transition: color .2s, background .2s;
+    }
+    .tabs button:hover { color: var(--text); }
+    .tabs button[aria-selected="true"] {
+      color: #0b0b1a;
+      background: linear-gradient(100deg, var(--violet), var(--cyan));
+      font-weight: 600;
+      box-shadow: 0 0 16px rgba(167, 139, 250, .35);
+    }
+
+    .range { display: flex; gap: 6px; flex-wrap: wrap; }
     .range button {
       font: inherit;
       font-size: .875rem;
@@ -149,6 +186,105 @@
     .list .num { color: var(--muted); font-variant-numeric: tabular-nums; }
     .empty { color: var(--faint); font-size: .875rem; }
 
+    /* ---------- Geo Accordion ---------- */
+    .geo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .geo-hint { font-size: .8125rem; color: var(--muted); }
+    .geo-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .geo-card {
+      background: rgba(255, 255, 255, .02);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .geo-card[open] {
+      border-color: rgba(167, 139, 250, .4);
+    }
+    .geo-summary {
+      list-style: none;
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      font-size: .9375rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .geo-summary::-webkit-details-marker { display: none; }
+    .geo-summary .fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: rgba(167, 139, 250, .14);
+      z-index: 0;
+    }
+    .geo-summary .country-label {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+    }
+    .geo-summary .meta {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .geo-chevron {
+      display: inline-block;
+      font-size: .75rem;
+      color: var(--faint);
+      transition: transform .2s ease;
+    }
+    .geo-card[open] .geo-chevron {
+      transform: rotate(90deg);
+    }
+    .city-list {
+      list-style: none;
+      padding: 8px 14px 12px;
+      border-top: 1px solid var(--line);
+      background: rgba(0, 0, 0, .2);
+    }
+    .city-list li {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 10px;
+      font-size: .875rem;
+      border-radius: 6px;
+      margin-top: 2px;
+      overflow: hidden;
+    }
+    .city-list .fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: rgba(34, 211, 238, .12);
+      border-radius: 4px;
+      z-index: 0;
+    }
+    .city-list .city-name, .city-list .city-num {
+      position: relative;
+      z-index: 1;
+    }
+    .city-list .city-num {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .city-region { color: var(--faint); font-size: .8125rem; margin-left: 6px; }
+
+    /* ---------- Tab Panels ---------- */
+    .tab-panel[hidden] { display: none; }
+
     footer { margin-top: 28px; font-size: .8125rem; color: var(--faint); }
     footer label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; margin-top: 8px; }
     .status { color: var(--muted); margin-top: 20px; }
@@ -160,35 +296,67 @@
     <h1>Visitor stats</h1>
     <p class="lede">How many people visit this site, which pages they read, and where they come from. No cookies, and no IP addresses are stored.</p>
 
-    <div class="range" role="group" aria-label="Time range">
-      <button type="button" data-days="7">7 days</button>
-      <button type="button" data-days="30" aria-pressed="true">30 days</button>
-      <button type="button" data-days="90">90 days</button>
-      <button type="button" data-days="365">1 year</button>
+    <div class="controls">
+      <div class="tabs" role="tablist" aria-label="Stats views">
+        <button type="button" role="tab" id="tab-summary" aria-controls="panel-summary" aria-selected="true">Summary</button>
+        <button type="button" role="tab" id="tab-geo" aria-controls="panel-geo" aria-selected="false">Geo</button>
+        <button type="button" role="tab" id="tab-other" aria-controls="panel-other" aria-selected="false">Systems</button>
+      </div>
+
+      <div class="range" role="group" aria-label="Time range">
+        <button type="button" data-days="7">7 days</button>
+        <button type="button" data-days="30" aria-pressed="true">30 days</button>
+        <button type="button" data-days="90">90 days</button>
+        <button type="button" data-days="365">1 year</button>
+      </div>
     </div>
 
     <p class="status" id="status">Loading…</p>
 
     <div id="report" hidden>
-      <div class="totals">
-        <div class="card tile"><div class="label">Visitors</div><div class="value" id="visitors">–</div></div>
-        <div class="card tile"><div class="label">Page views</div><div class="value" id="views">–</div></div>
-        <div class="card tile"><div class="label">Views per visitor</div><div class="value" id="per">–</div></div>
+      <!-- TAB 1: SUMMARY -->
+      <div id="panel-summary" class="tab-panel" role="tabpanel" aria-labelledby="tab-summary">
+        <div class="totals">
+          <div class="card tile"><div class="label">Visitors</div><div class="value" id="visitors">–</div></div>
+          <div class="card tile"><div class="label">Page views</div><div class="value" id="views">–</div></div>
+          <div class="card tile"><div class="label">Views per visitor</div><div class="value" id="per">–</div></div>
+        </div>
+
+        <section class="card">
+          <h2>Page views per day</h2>
+          <div class="chart" id="chart"><div class="tip" id="tip"></div></div>
+          <details>
+            <summary>Show as a table</summary>
+            <table id="table"><thead><tr><th>Day</th><th>Visitors</th><th>Page views</th></tr></thead><tbody></tbody></table>
+          </details>
+        </section>
+
+        <div class="lists">
+          <section class="card"><h2>Pages</h2><ul class="list" id="pages"></ul></section>
+          <section class="card"><h2>Referrers</h2><ul class="list" id="referrers"></ul></section>
+          <section class="card"><h2>Countries</h2><ul class="list" id="countries"></ul></section>
+        </div>
       </div>
 
-      <section class="card">
-        <h2>Page views per day</h2>
-        <div class="chart" id="chart"><div class="tip" id="tip"></div></div>
-        <details>
-          <summary>Show as a table</summary>
-          <table id="table"><thead><tr><th>Day</th><th>Visitors</th><th>Page views</th></tr></thead><tbody></tbody></table>
-        </details>
-      </section>
+      <!-- TAB 2: GEO (Country -> City drilldown) -->
+      <div id="panel-geo" class="tab-panel" role="tabpanel" aria-labelledby="tab-geo" hidden>
+        <section class="card">
+          <div class="geo-header">
+            <h2>Traffic by Country &amp; City</h2>
+            <span class="geo-hint">Click a country to view cities</span>
+          </div>
+          <div id="geo-drilldown"></div>
+        </section>
+      </div>
 
-      <div class="lists">
-        <section class="card"><h2>Pages</h2><ul class="list" id="pages"></ul></section>
-        <section class="card"><h2>Referrers</h2><ul class="list" id="referrers"></ul></section>
-        <section class="card"><h2>Countries</h2><ul class="list" id="countries"></ul></section>
+      <!-- TAB 3: OTHER / SYSTEMS -->
+      <div id="panel-other" class="tab-panel" role="tabpanel" aria-labelledby="tab-other" hidden>
+        <div class="lists">
+          <section class="card"><h2>Device</h2><ul class="list" id="devices"></ul></section>
+          <section class="card"><h2>Operating System</h2><ul class="list" id="os"></ul></section>
+          <section class="card"><h2>Browser</h2><ul class="list" id="browsers"></ul></section>
+          <section class="card"><h2>Network / Organization</h2><ul class="list" id="networks"></ul></section>
+        </div>
       </div>
     </div>
 
@@ -204,6 +372,25 @@
     const fmt = new Intl.NumberFormat("en");
     const countryName = new Intl.DisplayNames(["en"], { type: "region" });
     const $ = (id) => document.getElementById(id);
+
+    function getFlagEmoji(countryCode) {
+      if (!countryCode || countryCode.length !== 2) return "";
+      const codePoints = countryCode
+        .toUpperCase()
+        .split("")
+        .map((char) => 127397 + char.charCodeAt(0));
+      return String.fromCodePoint(...codePoints);
+    }
+
+    function formatCountry(code) {
+      try {
+        const flag = getFlagEmoji(code);
+        const name = countryName.of(code) || code;
+        return flag ? `${flag} ${name}` : name;
+      } catch {
+        return code;
+      }
+    }
 
     // Every day in the range, so days with no views still show as gaps
     function allDays(since, days) {
@@ -221,7 +408,6 @@
       const byDay = Object.fromEntries(data.daily.map((d) => [d.day, d]));
       const rows = allDays(data.since, data.days).map((day) => byDay[day] || { day, views: 0, visitors: 0 });
       const max = Math.max(1, ...rows.map((r) => r.views));
-      // A rounded-up top for the scale, so the gridlines land on whole numbers
       const step = Math.pow(10, Math.floor(Math.log10(max)));
       const top = Math.ceil(max / step) * step;
 
@@ -242,7 +428,6 @@
         const x = left + i * slot + gap / 2;
         const h = (r.views / top) * plotH;
         const rx = Math.min(4, barW / 2, h);
-        // Hit area spans the full column, wider than the bar itself
         svg += `<rect class="hit" data-i="${i}" x="${left + i * slot}" y="8" width="${slot}" height="${plotH}" />`;
         svg += h > 0
           ? `<path class="bar" d="M${x},${y(0)} V${y(r.views) + rx} q0,-${rx} ${rx},-${rx} h${barW - 2 * rx} q${rx},0 ${rx},${rx} V${y(0)} Z" />`
@@ -276,7 +461,7 @@
 
     function drawList(id, items, label = (n) => n) {
       const list = $(id);
-      if (!items.length) return (list.innerHTML = `<li class="empty">Nothing yet</li>`);
+      if (!items || !items.length) return (list.innerHTML = `<li class="empty">Nothing yet</li>`);
       const max = items[0].views;
       list.innerHTML = items.map((it) => {
         const text = String(label(it.name)).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -284,6 +469,104 @@
           `<span class="name" title="${text}">${text}</span><span class="num">${fmt.format(it.views)}</span></li>`;
       }).join("");
     }
+
+    function drawGeo(data) {
+      const container = $("geo-drilldown");
+      const countries = data.countries || [];
+      const cities = data.cities || [];
+      if (!countries.length) {
+        container.innerHTML = `<p class="empty">No geographic data recorded for this time range.</p>`;
+        return;
+      }
+
+      // Group cities by country
+      const citiesByCountry = {};
+      for (const c of cities) {
+        if (!citiesByCountry[c.country]) citiesByCountry[c.country] = [];
+        citiesByCountry[c.country].push(c);
+      }
+
+      const totalGeoViews = countries.reduce((sum, c) => sum + c.views, 0);
+      const maxCountryViews = Math.max(1, ...countries.map((c) => c.views));
+
+      container.innerHTML = `<div class="geo-list">` +
+        countries.map((c, idx) => {
+          const list = citiesByCountry[c.name] || [];
+          const knownCityViews = list.reduce((s, it) => s + it.views, 0);
+          const remainder = c.views - knownCityViews;
+          const countryLabel = formatCountry(c.name);
+          const percent = ((c.views / totalGeoViews) * 100).toFixed(0);
+
+          let citiesHtml = "";
+          if (list.length > 0) {
+            const maxCity = Math.max(...list.map((it) => it.views), remainder > 0 ? remainder : 0);
+            citiesHtml = list.map((city) => {
+              const regionText = city.region ? `<span class="city-region">${city.region}</span>` : "";
+              const w = ((city.views / maxCity) * 100).toFixed(1);
+              return `<li><span class="fill" style="width:${w}%"></span>` +
+                `<span class="city-name">${city.city}${regionText}</span><span class="city-num">${fmt.format(city.views)}</span></li>`;
+            }).join("");
+
+            if (remainder > 0) {
+              const w = ((remainder / maxCity) * 100).toFixed(1);
+              citiesHtml += `<li><span class="fill" style="width:${w}%"></span>` +
+                `<span class="city-name" style="color:var(--muted); font-style:italic">Other / earlier visits</span><span class="city-num">${fmt.format(remainder)}</span></li>`;
+            }
+          } else {
+            citiesHtml = `<li style="color:var(--faint); font-size:.8125rem;">Cities not recorded for earlier visits in this country</li>`;
+          }
+
+          // Automatically expand the first country if it's the only one or has views
+          const openAttr = idx === 0 ? "open" : "";
+          const barWidth = ((c.views / maxCountryViews) * 100).toFixed(1);
+
+          return `<details class="geo-card" ${openAttr}>` +
+            `<summary class="geo-summary">` +
+              `<span class="fill" style="width:${barWidth}%"></span>` +
+              `<span class="country-label">${countryLabel}</span>` +
+              `<span class="meta"><span>${fmt.format(c.views)} views (${percent}%)</span><span class="geo-chevron">▶</span></span>` +
+            `</summary>` +
+            `<ul class="city-list">${citiesHtml}</ul>` +
+          `</details>`;
+        }).join("") +
+      `</div>`;
+    }
+
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.tabs button[role="tab"]');
+    const tabPanels = document.querySelectorAll(".tab-panel");
+
+    function setTab(targetId) {
+      tabButtons.forEach((btn) => {
+        const active = btn.id === targetId;
+        btn.setAttribute("aria-selected", String(active));
+      });
+      tabPanels.forEach((panel) => {
+        const active = panel.getAttribute("aria-labelledby") === targetId;
+        panel.hidden = !active;
+      });
+      // If switching to summary while chart exists, resize chart
+      if (targetId === "tab-summary" && lastData) {
+        requestAnimationFrame(() => drawChart(lastData));
+      }
+    }
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setTab(btn.id);
+        const hash = btn.id.replace("tab-", "#");
+        history.replaceState(null, "", hash);
+      });
+    });
+
+    // Check initial hash
+    const initialTab = {
+      "#geo": "tab-geo",
+      "#systems": "tab-other",
+      "#other": "tab-other",
+      "#summary": "tab-summary"
+    }[location.hash] || "tab-summary";
+    setTab(initialTab);
 
     async function load(days) {
       document.querySelectorAll(".range button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
@@ -295,10 +578,19 @@
         $("visitors").textContent = fmt.format(visitors);
         $("views").textContent = fmt.format(views);
         $("per").textContent = visitors ? (views / visitors).toFixed(1) : "–";
+
         drawChart((lastData = data));
         drawList("pages", data.pages);
         drawList("referrers", data.referrers);
-        drawList("countries", data.countries, (c) => { try { return countryName.of(c); } catch { return c; } });
+        drawList("countries", data.countries, formatCountry);
+
+        drawGeo(data);
+
+        drawList("devices", data.devices);
+        drawList("os", data.os);
+        drawList("browsers", data.browsers);
+        drawList("networks", data.networks);
+
         $("status").hidden = true;
         $("report").hidden = false;
       } catch (e) {
@@ -308,7 +600,9 @@
 
     // Redraw at the new width, so the chart text never stretches
     let lastData;
-    addEventListener("resize", () => lastData && drawChart(lastData));
+    addEventListener("resize", () => {
+      if (lastData && !$("panel-summary").hidden) drawChart(lastData);
+    });
 
     document.querySelectorAll(".range button").forEach((b) => b.addEventListener("click", () => load(+b.dataset.days)));
 
