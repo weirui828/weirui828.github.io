@@ -301,6 +301,7 @@
         <button type="button" role="tab" id="tab-summary" aria-controls="panel-summary" aria-selected="true">Summary</button>
         <button type="button" role="tab" id="tab-geo" aria-controls="panel-geo" aria-selected="false">Geo</button>
         <button type="button" role="tab" id="tab-other" aria-controls="panel-other" aria-selected="false">Systems</button>
+        <button type="button" role="tab" id="tab-engagement" aria-controls="panel-engagement" aria-selected="false">Engagement</button>
       </div>
 
       <div class="range" role="group" aria-label="Time range">
@@ -356,6 +357,22 @@
           <section class="card"><h2>Operating System</h2><ul class="list" id="os"></ul></section>
           <section class="card"><h2>Browser</h2><ul class="list" id="browsers"></ul></section>
           <section class="card"><h2>Network / Organization</h2><ul class="list" id="networks"></ul></section>
+        </div>
+      </div>
+
+      <!-- TAB 4: ENGAGEMENT -->
+      <div id="panel-engagement" class="tab-panel" role="tabpanel" aria-labelledby="tab-engagement" hidden>
+        <div class="totals" style="margin-bottom: 12px;">
+          <div class="card tile"><div class="label">Avg. reading time</div><div class="value" id="avg-time">–</div></div>
+          <div class="card tile"><div class="label">Deep scroll (75%+)</div><div class="value" id="deep-scroll">–</div></div>
+          <div class="card tile"><div class="label">Outbound clicks</div><div class="value" id="total-outbound">–</div></div>
+        </div>
+
+        <div class="lists">
+          <section class="card"><h2>Sections &amp; Tabs</h2><ul class="list" id="sections"></ul></section>
+          <section class="card"><h2>Outbound Link Clicks</h2><ul class="list" id="outbounds"></ul></section>
+          <section class="card"><h2>Scroll Depth</h2><ul class="list" id="scrolls"></ul></section>
+          <section class="card"><h2>Campaigns &amp; Referral Tags</h2><ul class="list" id="campaigns"></ul></section>
         </div>
       </div>
     </div>
@@ -532,6 +549,40 @@
       `</div>`;
     }
 
+    function drawScrolls(scrolls) {
+      const list = $("scrolls");
+      if (!scrolls || !scrolls.length) {
+        $("deep-scroll").textContent = "–";
+        return (list.innerHTML = `<li class="empty">Nothing yet</li>`);
+      }
+      const order = ["100%", "75%", "50%", "25%"];
+      const byName = Object.fromEntries(scrolls.map((s) => [s.name, s.views]));
+      const max = Math.max(1, ...scrolls.map((s) => s.views));
+      const labels = {
+        "100%": "100% (Reached bottom)",
+        "75%": "75% (Deep read)",
+        "50%": "50% (Halfway)",
+        "25%": "25% (Initial scroll)",
+      };
+
+      const rows = order.filter((m) => byName[m] > 0);
+      if (!rows.length) {
+        $("deep-scroll").textContent = "–";
+        return (list.innerHTML = `<li class="empty">Nothing yet</li>`);
+      }
+
+      list.innerHTML = rows.map((m) => {
+        const v = byName[m];
+        const label = labels[m] || m;
+        return `<li><span class="fill" style="width:${(v / max) * 100}%"></span>` +
+          `<span class="name" title="${label}">${label}</span><span class="num">${fmt.format(v)}</span></li>`;
+      }).join("");
+
+      const deep = (byName["75%"] || 0) + (byName["100%"] || 0);
+      const total = scrolls.reduce((sum, s) => sum + s.views, 0);
+      $("deep-scroll").textContent = total ? `${Math.round((deep / total) * 100)}%` : "–";
+    }
+
     // Tab switching
     const tabButtons = document.querySelectorAll('.tabs button[role="tab"]');
     const tabPanels = document.querySelectorAll(".tab-panel");
@@ -564,6 +615,7 @@
       "#geo": "tab-geo",
       "#systems": "tab-other",
       "#other": "tab-other",
+      "#engagement": "tab-engagement",
       "#summary": "tab-summary"
     }[location.hash] || "tab-summary";
     setTab(initialTab);
@@ -590,6 +642,17 @@
         drawList("os", data.os);
         drawList("browsers", data.browsers);
         drawList("networks", data.networks);
+
+        drawList("sections", data.sections);
+        drawList("outbounds", data.outbounds);
+        drawScrolls(data.scrolls);
+        drawList("campaigns", data.campaigns);
+
+        const sec = data.duration?.avg_seconds;
+        $("avg-time").textContent = sec ? (sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${sec % 60}s`) : "–";
+
+        const totalOutbound = (data.outbounds || []).reduce((s, o) => s + o.views, 0);
+        $("total-outbound").textContent = fmt.format(totalOutbound);
 
         $("status").hidden = true;
         $("report").hidden = false;

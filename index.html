@@ -2664,12 +2664,100 @@
       });
     });
   </script>
-  <!-- Visitor stats: one anonymous page view per load, no cookies (see /stats/) -->
+  <!-- Visitor stats: anonymous page view, section navigation, outbound clicks, scroll & reading duration (no cookies, see /stats/) -->
   <script>
     (function () {
       try { if (localStorage.getItem("stats-ignore")) return; } catch (e) {}
       if (!/(^|\.)weiniverse\.com$|\.github\.io$/.test(location.hostname)) return;
-      navigator.sendBeacon("https://weiniverse-stats.aug828.workers.dev/hit", JSON.stringify({ p: location.pathname, r: document.referrer }));
+
+      const API_BASE = "https://weiniverse-stats.aug828.workers.dev";
+      const q = new URLSearchParams(location.search);
+      const campaign = q.get("ref") || q.get("utm_source") || q.get("source") || null;
+
+      navigator.sendBeacon(
+        API_BASE + "/hit",
+        JSON.stringify({
+          p: location.pathname,
+          r: document.referrer,
+          c: campaign,
+          h: location.hash || null
+        })
+      );
+
+      function sendEvent(type, name, value) {
+        navigator.sendBeacon(
+          API_BASE + "/event",
+          JSON.stringify({
+            p: location.pathname,
+            events: [{ type, name, value: value || null }]
+          })
+        );
+      }
+
+      document.addEventListener("click", function (e) {
+        const a = e.target.closest("a");
+        if (!a) return;
+        const href = a.getAttribute("href");
+        if (!href) return;
+
+        if (href.startsWith("#") && href.length > 1) {
+          sendEvent("section", href);
+        } else if (/^https?:\/\//i.test(href)) {
+          try {
+            const url = new URL(href);
+            if (!/(^|\.)weiniverse\.com$|\.github\.io$/.test(url.hostname)) {
+              sendEvent("outbound", url.hostname + (url.pathname !== "/" ? url.pathname : ""));
+            }
+          } catch (err) {}
+        }
+      });
+
+      let startTime = Date.now();
+      let maxScroll = 0;
+
+      function updateScroll() {
+        const h = document.documentElement;
+        const b = document.body;
+        const top = h.scrollTop || b.scrollTop;
+        const total = (h.scrollHeight || b.scrollHeight) - h.clientHeight;
+        if (total <= 0) {
+          maxScroll = 100;
+        } else {
+          const pct = Math.min(100, Math.round((top / total) * 100));
+          if (pct > maxScroll) maxScroll = pct;
+        }
+      }
+      window.addEventListener("scroll", updateScroll, { passive: true });
+      updateScroll();
+
+      let flushed = false;
+      function flushSession() {
+        if (flushed) return;
+        flushed = true;
+        updateScroll();
+        const dur = Math.round((Date.now() - startTime) / 1000);
+        const events = [];
+        if (dur >= 3) {
+          events.push({ type: "duration", value: Math.min(dur, 1800) });
+        }
+        let milestone = null;
+        if (maxScroll >= 90) milestone = "100%";
+        else if (maxScroll >= 75) milestone = "75%";
+        else if (maxScroll >= 50) milestone = "50%";
+        else if (maxScroll >= 25) milestone = "25%";
+
+        if (milestone) {
+          events.push({ type: "scroll", name: milestone });
+        }
+        if (events.length > 0) {
+          navigator.sendBeacon(API_BASE + "/event", JSON.stringify({ p: location.pathname, events }));
+        }
+      }
+
+      window.addEventListener("pagehide", flushSession);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden") flushSession();
+      });
     })();
   </script>
 </body>
