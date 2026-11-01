@@ -1198,16 +1198,19 @@
     }
 
     /* Cave Diver page */
-    #building .cd-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px 20px; flex-wrap: wrap; }
-    #building .cd-intro-text { flex: 1 1 320px; min-width: 0; }
+    #building .cd-hero { position: relative; padding-bottom: 36px; }
     #building .cd-try {
-      flex: 0 0 auto; margin-top: 6px;
+      position: absolute; right: 28px; bottom: 14px;
       font-size: .875rem; font-weight: 600; color: var(--emerald);
       text-decoration: none; white-space: nowrap;
       border-bottom: 1px solid rgba(52, 211, 153, .32); padding-bottom: 1px;
       transition: border-color .2s ease, color .2s ease;
     }
     #building .cd-try:hover { border-color: var(--emerald); color: #6ee7b7; }
+    @media (max-width: 600px) {
+      #building .cd-hero { padding-bottom: 22px; }
+      #building .cd-try { position: static; display: inline-block; margin-top: 12px; }
+    }
     #building .cd-shot { padding: 0; overflow: hidden; }
     #building .cd-shot img { display: block; width: 100%; height: auto; }
 
@@ -1451,14 +1454,12 @@
 
         <div class="belt-panel" data-project="cave-diver" hidden>
           <article class="dp">
-            <header class="glass dp-hero">
-              <div class="dp-intro cd-intro">
-                <div class="cd-intro-text">
-                  <h3>Cave Diver</h3>
-                  <p class="dp-lede">You’re a cave diver with a flashlight, a tank of air and a guideline that’s supposed to lead you home. The rules are simple: follow the line, reach the survey point, and turn back safely.</p>
-                </div>
-                <a class="cd-try" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Try it</a>
+            <header class="glass dp-hero cd-hero">
+              <div class="dp-intro">
+                <h3>Cave Diver</h3>
+                <p class="dp-lede">You’re a cave diver with a flashlight, a tank of air and a guideline that’s supposed to lead you home. The rules are simple: follow the line, reach the survey point, and turn back safely.</p>
               </div>
+              <a class="cd-try" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Try it</a>
             </header>
 
             <figure class="glass dp-block cd-shot">
