@@ -1215,19 +1215,18 @@
       #building .belt { height: 150px; }
     }
 
-    /* Cave Diver page */
-    #building .cd-hero { position: relative; padding-bottom: 36px; }
-    #building .cd-try {
+    /* a flat text link pinned to the hero's bottom-right corner */
+    #building .dp-hero.is-linkable { position: relative; padding-bottom: 36px; }
+    #building .dp-hero-link {
       position: absolute; right: 28px; bottom: 14px;
-      font-size: .875rem; font-weight: 600; color: var(--emerald);
-      text-decoration: none; white-space: nowrap;
-      border-bottom: 1px solid rgba(52, 211, 153, .32); padding-bottom: 1px;
-      transition: border-color .2s ease, color .2s ease;
+      font-size: .875rem; font-weight: 600; text-decoration: none; white-space: nowrap;
+      border-bottom: 1px solid rgba(255, 255, 255, .22); padding-bottom: 1px;
+      transition: border-color .2s ease, opacity .2s ease;
     }
-    #building .cd-try:hover { border-color: var(--emerald); color: #6ee7b7; }
+    #building .dp-hero-link:hover { border-color: currentColor; }
     @media (max-width: 600px) {
-      #building .cd-hero { padding-bottom: 22px; }
-      #building .cd-try { position: static; display: block; text-align: right; margin-top: 12px; }
+      #building .dp-hero.is-linkable { padding-bottom: 22px; }
+      #building .dp-hero-link { position: static; display: block; text-align: right; margin-top: 12px; }
     }
     #building .cd-shot { padding: 0; overflow: hidden; }
     #building .cd-shot img { display: block; width: 100%; height: auto; }
@@ -1472,12 +1471,12 @@
 
         <div class="belt-panel" data-project="cave-diver" hidden>
           <article class="dp">
-            <header class="glass dp-hero cd-hero">
+            <header class="glass dp-hero is-linkable">
               <div class="dp-intro">
                 <h3>Cave Diver</h3>
                 <p class="dp-lede">You’re a cave diver with a flashlight, a tank of air and a guideline that’s supposed to lead you home. The rules are simple: follow the line, reach the survey point, and turn back safely.</p>
               </div>
-              <a class="cd-try" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Try it</a>
+              <a class="dp-hero-link" style="color: var(--emerald)" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Try it</a>
             </header>
 
             <div class="glass dp-block">
@@ -1511,6 +1510,52 @@
               <p class="dp-kicker"><span>05</span>Where it's at</p>
               <p>It's far from finished. Some rocks sit in odd places, the third dive needs much more tuning, and the player needs better help to understand how to play. It also wasn't built as planned: it's supposed to be a lot more difficult, with tricks everywhere, but I didn't have time to pan out all my gimmicks.</p>
               <p>With more time, that's where I'd spend it: polishing the details, teaching the player properly without ruining the surprise, and making the third dive much more difficult.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="belt-panel" data-project="seamless" hidden>
+          <article class="dp">
+            <header class="glass dp-hero is-linkable">
+              <div class="dp-intro">
+                <h3>Seamless</h3>
+                <p class="dp-lede">I photograph places that are wider than Instagram's frame, and every crop eats the part I was standing there for. Seamless splits one photo across a carousel — swipe through it and the whole panorama comes back — and handles the small annoyances around it: soft edges, slow pans, a folder of files at the end.</p>
+              </div>
+              <a class="dp-hero-link" style="color: #b9a7dd" href="https://weiniverse.com/seamless/" target="_blank" rel="noopener">Open Seamless →</a>
+            </header>
+
+            <figure class="glass dp-block cd-shot">
+              <img src="assets/seamless-cover.jpg" alt="Seamless splitting a sunset panorama into two carousel slides, with the slide boundaries marked." loading="lazy">
+            </figure>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>01</span>Why it exists</p>
+              <p>I photograph places wider than the frame Instagram gives me, and cropping always throws away the part I was standing there for. The trick everyone uses is a carousel: chop the panorama into slides, and swiping through the post reassembles it. I wanted to do that chop without guessing, so I built this, then kept adding the things I was tired of doing by hand.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>02</span>Carousel</p>
+              <p>Pick a number of slides and a shape. Auto keeps the whole photo and chooses something between 1.91:1 and 3:4; 4:5, 3:4 and 1:1 fill the frame and quietly drop the edges. When the photo doesn't fill the frame, the empty space becomes a blurred copy of itself — or black, white or a colour. Files land at 1080, 1440 or 2160 px, named after the photo and the slide number, so they upload in the right order.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>03</span>Reel</p>
+              <p>A pan is two points and a length: where it starts, where it ends, eight seconds in between, and a small zoom so the frame doesn't feel dead. Export it, and you have a Reel. There's no timeline to learn.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>04</span>Batch</p>
+              <p>Hikes and weddings arrive in tens. Batch runs the same steps over up to ten photos and writes them into a folder. The folder picker needs Chrome; the rest runs anywhere.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>05</span>Nothing is uploaded</p>
+              <p>No account, no server, no upload button. The browser reads the photo, draws with it, and writes the result back to disk. That's not a promise I added at the end — it's the only version I would have bothered to build.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>06</span>Where it's at</p>
+              <p>Two small truths: Instagram only accepts 3:4 slides when you post from the app, so 4:5 is the safe shape for schedulers; and a wide photo split many ways goes soft at the outer edges. Folder saving is Chrome-only, and on a phone you just save the files one by one.</p>
             </div>
           </article>
         </div>
@@ -3133,6 +3178,7 @@
       { slug: "dream-pet", title: "Dream Pet", color: "#f0b48a" },
       { slug: "vibecab", title: "Vibecab", color: "#e6cf9a" },
       { slug: "cave-diver", title: "Cave Diver", color: "#9dc7b4" },
+      { slug: "seamless", title: "Seamless", color: "#b9a7dd" },
       { slug: "skyeye", title: "Skyeye", color: "#8fb6dd" },
     ].filter(p => panels.querySelector('.belt-panel[data-project="' + p.slug + '"]').length !== 0);
 
@@ -3179,7 +3225,7 @@
         cy: H * 0.52,
         focusX: W * (compact() ? 0.56 : 0.54),
         focusY: H * 0.52,   // same height as the sun centre, so the planet is the ellipse vertex
-        spacing: compact() ? 76 : Math.max(96, Math.round(W * 0.14)),
+        spacing: compact() ? 68 : Math.max(74, Math.round(W * 0.105)),
       };
     }
     const planetY = (x, g) => g.focusY + 20 * Math.pow((x - g.focusX) / (g.W * 0.62), 2);
