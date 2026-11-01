@@ -1215,6 +1215,13 @@
       #building .belt { height: 150px; }
     }
 
+    #building .dp-wip {
+      display: inline-block; font-family: "Space Grotesk", monospace;
+      font-size: .6875rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid rgba(251, 191, 36, .35);
+      border-radius: 999px; padding: 3px 10px; margin-bottom: 12px;
+    }
+
     #building .dp-inline-link {
       color: #b9a7dd; text-decoration: none;
       border-bottom: 1px solid rgba(185, 167, 221, .45); padding-bottom: 1px;
@@ -1474,16 +1481,28 @@
 
         <div class="belt-panel" data-project="vibecab" hidden>
           <article class="dp">
-            <header class="glass dp-hero">
+            <header class="glass dp-hero is-linkable">
               <div class="dp-intro">
-                <p class="dp-placeholder-tag">Placeholder</p>
+                <p class="dp-wip">Work in progress</p>
                 <h3>Vibecab</h3>
-                <p class="dp-lede">An orbit held for Vibecab. The write-up isn't here yet.</p>
+                <p class="dp-lede">I'm building Vibecab: a workspace where a person and a few AI agents work on the same artifact. You write what you want, agents draft and edit, and the thing in the middle keeps changing until you are happy with it.</p>
               </div>
+              <a class="dp-hero-link" style="color: var(--gold)" href="https://github.com/weirui828/vibecab" target="_blank" rel="noopener">GitHub</a>
             </header>
+
             <div class="glass dp-block">
               <p class="dp-kicker"><span>01</span>What it is</p>
-              <p>Placeholder — replace this block with the real project story when it exists.</p>
+              <p>Chat gives you a wall of text. A workspace gives you one object that both sides can edit: a doc, a plan, a page. Agents can change it, you can change it, and the history stays.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>02</span>How it works</p>
+              <p>The core is a headless TypeScript engine. A JSON Schema contract fixes what an artifact looks like. A serial command kernel applies one change at a time. SQLite keeps the history. Adapters run in-process or over loopback HTTP, so a UI or an agent can drive it.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>03</span>Where it is</p>
+              <p>Only the first milestone exists: the contract, the kernel, the history, structured doc content and the adapters. There is no UI yet, no model providers, no feedback loop.</p>
             </div>
           </article>
         </div>
@@ -1581,19 +1600,32 @@
 
         <div class="belt-panel" data-project="skyeye" hidden>
           <article class="dp">
-            <header class="glass dp-hero">
+            <header class="glass dp-hero is-linkable">
               <div class="dp-intro">
-                <p class="dp-placeholder-tag">Placeholder</p>
+                <p class="dp-wip">Work in progress</p>
                 <h3>Skyeye</h3>
-                <p class="dp-lede">An orbit held for Skyeye. The write-up isn't here yet.</p>
+                <p class="dp-lede">Skyeye is a menu bar app for the local services on my Mac. I start and stop them from the menu bar, and a canvas shows which service depends on which.</p>
               </div>
+              <a class="dp-hero-link" style="color: #8fb6dd" href="https://github.com/weirui828/skyeye" target="_blank" rel="noopener">GitHub</a>
             </header>
+
             <div class="glass dp-block">
-              <p class="dp-kicker"><span>01</span>What it is</p>
-              <p>Placeholder — replace this block with the real project story when it exists.</p>
+              <p class="dp-kicker"><span>01</span>What it does</p>
+              <p>Each service gets a switch in the menu bar. The canvas draws the dependencies between services, so it is clear what has to start first. Logs sit in the same place as the service.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>02</span>Why</p>
+              <p>Local development ends up as a pile of terminals. You forget which one is the database, which one is the API, and what has to start first. Skyeye keeps that in one place.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>03</span>Status</p>
+              <p>Early developer preview. The interface can change. I check the CI results before I use a new build.</p>
             </div>
           </article>
         </div>
+
       </div>
       <p class="more-end"><a class="more" href="https://github.com/weirui828" target="_blank" rel="noopener">More on GitHub →</a></p>
     </section>
