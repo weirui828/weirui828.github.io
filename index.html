@@ -1198,13 +1198,16 @@
     }
 
     /* Cave Diver page */
-    #building .cd-actions { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-    #building .cd-play {
-      font-size: .875rem; font-weight: 600; color: #06120d; background: var(--emerald);
-      border-radius: 999px; padding: 9px 18px; text-decoration: none;
-      transition: transform .2s ease, box-shadow .2s ease;
+    #building .cd-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px 20px; flex-wrap: wrap; }
+    #building .cd-intro-text { flex: 1 1 320px; min-width: 0; }
+    #building .cd-try {
+      flex: 0 0 auto; margin-top: 6px;
+      font-size: .875rem; font-weight: 600; color: var(--emerald);
+      text-decoration: none; white-space: nowrap;
+      border-bottom: 1px solid rgba(52, 211, 153, .32); padding-bottom: 1px;
+      transition: border-color .2s ease, color .2s ease;
     }
-    #building .cd-play:hover { transform: translateY(-1px); box-shadow: 0 8px 24px -8px rgba(52, 211, 153, .65); }
+    #building .cd-try:hover { border-color: var(--emerald); color: #6ee7b7; }
     #building .cd-shot { padding: 0; overflow: hidden; }
     #building .cd-shot img { display: block; width: 100%; height: auto; }
     #building .cd-shot figcaption { padding: 10px 16px 12px; font-size: .75rem; color: var(--faint); }
@@ -1450,12 +1453,12 @@
         <div class="belt-panel" data-project="cave-diver" hidden>
           <article class="dp">
             <header class="glass dp-hero">
-              <div class="dp-intro">
-                <h3>Cave Diver</h3>
-                <p class="dp-lede">You’re a cave diver with a flashlight, a tank of air and a guideline that’s supposed to lead you home. The rules are simple: follow the line, reach the survey point, and turn back safely.</p>
-                <p class="cd-actions">
-                  <a class="cd-play" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Play Cave Diver →</a>
-                </p>
+              <div class="dp-intro cd-intro">
+                <div class="cd-intro-text">
+                  <h3>Cave Diver</h3>
+                  <p class="dp-lede">You’re a cave diver with a flashlight, a tank of air and a guideline that’s supposed to lead you home. The rules are simple: follow the line, reach the survey point, and turn back safely.</p>
+                </div>
+                <a class="cd-try" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Try it</a>
               </div>
             </header>
 
