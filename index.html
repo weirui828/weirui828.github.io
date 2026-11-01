@@ -1189,6 +1189,19 @@
     #building .belt-planet:focus-visible { outline: none; }
     #building .belt-planet:focus-visible .body { outline: 2px solid var(--text); outline-offset: 5px; }
     #building .belt-panel[hidden] { display: none; }
+
+    /* switching projects: the old page fades out, the new one rises in, blocks stagger */
+    #building .belt-panel { transition: opacity .16s ease, transform .16s ease; }
+    #building .belt-panel.is-leaving { opacity: 0; transform: translateY(-6px); }
+    #building .belt-panel .dp > * { transition: opacity .3s ease, transform .3s ease; }
+    #building .belt-panel.is-entering .dp > * { opacity: 0; transform: translateY(10px); }
+    #building .belt-panel.is-entering .dp > *:nth-child(1) { transition-delay: .02s; }
+    #building .belt-panel.is-entering .dp > *:nth-child(2) { transition-delay: .06s; }
+    #building .belt-panel.is-entering .dp > *:nth-child(3) { transition-delay: .1s; }
+    #building .belt-panel.is-entering .dp > *:nth-child(4) { transition-delay: .14s; }
+    #building .belt-panel.is-entering .dp > *:nth-child(5) { transition-delay: .18s; }
+    #building .belt-panel.is-entering .dp > *:nth-child(6) { transition-delay: .22s; }
+    #building .belt-panel.is-entering .dp > *:nth-child(n+7) { transition-delay: .26s; }
     #building .dp-placeholder-tag {
       font-family: "Space Grotesk", monospace; font-size: .6875rem; letter-spacing: .18em;
       text-transform: uppercase; color: var(--faint); margin-bottom: 10px;
@@ -3221,17 +3234,42 @@
       place(g);
     }
 
+    let current = panels.querySelector(".belt-panel");
+    let leaving = null;
+
     function show(i) {
       idx = i;
       const slug = PROJECTS[i].slug;
-      panels.querySelectorAll(".belt-panel").forEach(el => {
-        el.hidden = el.dataset.project !== slug;
-      });
+      const next = panels.querySelector('.belt-panel[data-project="' + slug + '"]');
+      if (!next || next === current) { place(); return; }
+
+      // if the reader is scrolled into the old article, come back to the banner first
+      const wasScrolled = window.scrollY > belt.getBoundingClientRect().top + window.scrollY + 40;
+
+      clearTimeout(leaving);
+      const prev = current;
+      prev.classList.add("is-leaving");
       place();
+
+      leaving = setTimeout(() => {
+        prev.hidden = true;
+        prev.classList.remove("is-leaving");
+        next.hidden = false;
+        next.classList.add("is-entering");
+        void next.offsetWidth;            // flush the start state
+        next.classList.remove("is-entering");
+        current = next;
+        if (wasScrolled) {
+          const top = belt.getBoundingClientRect().top + window.scrollY - 76;
+          window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        }
+      }, 160);
     }
 
     function animateTo(target, ms) {
       if (anim) cancelAnimationFrame(anim);
+      const targetIdx = Math.max(0, Math.min(N - 1, Math.round(target)));
+      if (targetIdx !== idx) show(targetIdx);
       const from = progress, t0 = performance.now(), dur = ms || 420;
       const ease = t => 1 - Math.pow(1 - t, 3);
       function step(now) {
@@ -3239,11 +3277,7 @@
         progress = from + (target - from) * ease(k);
         place();
         if (k < 1) { anim = requestAnimationFrame(step); }
-        else {
-          anim = null; vel = 0;
-          const i = Math.max(0, Math.min(N - 1, Math.round(progress)));
-          if (i !== idx) show(i); else place();
-        }
+        else { anim = null; vel = 0; place(); }
       }
       anim = requestAnimationFrame(step);
     }
