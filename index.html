@@ -1197,6 +1197,20 @@
       #building .belt { height: 150px; }
     }
 
+    /* Cave Diver page */
+    #building .cd-actions { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+    #building .cd-play {
+      font-size: .875rem; font-weight: 600; color: #06120d; background: var(--emerald);
+      border-radius: 999px; padding: 9px 18px; text-decoration: none;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    #building .cd-play:hover { transform: translateY(-1px); box-shadow: 0 8px 24px -8px rgba(52, 211, 153, .65); }
+    #building .cd-meta { color: var(--faint); font-size: .75rem; }
+    #building .cd-shot { padding: 0; overflow: hidden; }
+    #building .cd-shot img { display: block; width: 100%; height: auto; }
+    #building .cd-shot figcaption { padding: 10px 16px 12px; font-size: .75rem; color: var(--faint); }
+    #building .cd-end { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
@@ -1435,18 +1449,58 @@
           </article>
         </div>
 
-        <div class="belt-panel" data-project="cave-divr" hidden>
+        <div class="belt-panel" data-project="cave-diver" hidden>
           <article class="dp">
             <header class="glass dp-hero">
               <div class="dp-intro">
-                <p class="dp-placeholder-tag">Placeholder</p>
-                <h3>Cave Divr</h3>
-                <p class="dp-lede">A third orbit, held for Cave Divr. The write-up isn't here yet.</p>
+                <p class="dp-kicker" style="color: var(--emerald)">Game jam · Unity · 2.5D</p>
+                <h3>Cave Diver</h3>
+                <p class="dp-lede">A short cave-diving game about doing almost everything right and still not coming back. Two dives — one you can't fail, one you probably will — and a dive-buddy app that stays cheerful the whole way down.</p>
+                <p class="cd-actions">
+                  <a class="cd-play" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Play Cave Diver →</a>
+                  <span class="cd-meta">Built in a few hours, almost entirely with AI tools.</span>
+                </p>
               </div>
             </header>
+
+            <figure class="glass dp-block cd-shot">
+              <img src="assets/cave-diver/cover.webp" alt="Cave Diver: a diver with a helmet lamp in dark water, with an in-game prompt reading Reach the survey marker." loading="lazy">
+              <figcaption>Dive two, right after the silt rolls in. The dive-buddy app is still cheerful.</figcaption>
+            </figure>
+
             <div class="glass dp-block">
-              <p class="dp-kicker"><span>01</span>What it is</p>
-              <p>Placeholder — replace this block with the real project story when it exists.</p>
+              <p class="dp-kicker"><span>01</span>The hook</p>
+              <p>I watch too many cave-diving accident videos. The scary part is never a monster. Usually the diver did almost everything right and one small thing went wrong: they kicked up silt and couldn't see their own hand, a line pointed the wrong way, they turned back a minute too late and ran out of air on the swim home. That was the feeling I wanted to build around.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>02</span>Two dives</p>
+              <p>So the shape of the game came first: one easy dive, then one that's almost impossible to get out of. Dive one is a sunlit pool with fish and a relentlessly upbeat dive-buddy app promising that the guideline will always bring you home. It does. In dive two the line gets you in fine; then you kick up silt, everything goes brown, and when it clears the line goes somewhere new. Most people follow it anyway.</p>
+              <p>The cave stays deadly serious and only the app makes jokes. It hands you an achievement called “Follow the line ✓ (whose line?)”. Later I pushed for a third dive that's properly hostile: a current you can't swim against, a chamber that keeps looping, eyes watching from the cracks, and the line you laid last time still waiting for you after you die.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>03</span>The look</p>
+              <p>The look owes a lot to <em>Little Nightmares</em>: a full 3D world you only ever see from the side, with things looming in front and hiding behind. So Cave Diver is 2.5D. A side view is also much easier to get right quickly, and it's how real cave maps are drawn — you only ever see a slice of the cave, never what's behind the rock. Later I added depth, so you can swim into the background or toward the camera anywhere, not just at marked holes. It makes the cave feel like a place instead of a corridor.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>04</span>Built in a few hours</p>
+              <p>I built it working almost entirely through AI tools. Claude helped turn the design talk into prompts; Nimble Fox built the Unity game from them, one feature at a time; Meshy made the diver, the bodies, a cave eel and the rocks; ElevenLabs made the breathing, which I cared about because you hear it the whole game and the first version drove me crazy. Things that would have taken me days happened while I was making coffee.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>05</span>Still my job</p>
+              <p>Keeping it pointed in the right direction was mine. When the cave went flat foggy grey, I pulled it back to pure black with only the flashlight, which is scarier and closer to the real videos. When the diver's tanks bent like rubber, I caught it and had the rig fixed. When Nimble Fox quietly added a fourth and fifth level I never asked for, I cut them. Most of my time went into playing, noticing what felt wrong, and deciding what to throw away.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>06</span>Where it's at</p>
+              <p>It's far from finished. Some rocks sit in odd places, the third dive needs much more tuning, and the game doesn't explain itself well — a few mechanics only make sense if you already know what I intended. With more time, that's where I'd spend it: polishing the details, making dive three fair, and teaching the player properly without ruining the surprise.</p>
+              <div class="cd-end">
+                <a class="cd-play" href="https://app.nimblefox.ai/g/OF4dWMwXIk" target="_blank" rel="noopener">Dive in →</a>
+                <span class="cd-meta">Heads up: dive two is meant to hurt.</span>
+              </div>
             </div>
           </article>
         </div>
@@ -2938,8 +2992,8 @@
     const PROJECTS = [
       { slug: "dream-pet", title: "Dream Pet", color: "#f0b48a" },
       { slug: "vibecab", title: "Vibecab", color: "#e6cf9a" },
-      { slug: "cave-divr", title: "Cave Divr", color: "#8fb6dd" },
-      { slug: "skyeye", title: "Skyeye", color: "#9dc7b4" },
+      { slug: "cave-diver", title: "Cave Diver", color: "#9dc7b4" },
+      { slug: "skyeye", title: "Skyeye", color: "#8fb6dd" },
     ].filter(p => panels.querySelector('.belt-panel[data-project="' + p.slug + '"]').length !== 0);
 
     const N = PROJECTS.length;
