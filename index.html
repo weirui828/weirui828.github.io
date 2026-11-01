@@ -1215,6 +1215,19 @@
       #building .belt { height: 150px; }
     }
 
+    /* text beside a portrait example (the Reel section) */
+    #building .dp-split { display: flex; gap: 26px; align-items: flex-start; }
+    #building .dp-split-text { flex: 1 1 auto; min-width: 0; }
+    #building .dp-split-media { flex: 0 0 200px; margin: 0; }
+    #building .dp-split-media video {
+      width: 100%; display: block; border-radius: 12px; background: #000;
+      box-shadow: 0 16px 40px -18px rgba(0, 0, 0, .85);
+    }
+    @media (max-width: 700px) {
+      #building .dp-split { flex-direction: column; gap: 16px; }
+      #building .dp-split-media { flex: none; width: 190px; align-self: center; }
+    }
+
     /* a flat text link pinned to the hero's bottom-right corner */
     #building .dp-hero.is-linkable { position: relative; padding-bottom: 36px; }
     #building .dp-hero-link {
@@ -1525,7 +1538,7 @@
             </header>
 
             <figure class="glass dp-block cd-shot">
-              <img src="assets/seamless-cover.jpg" alt="Seamless splitting a sunset panorama into two carousel slides, with the slide boundaries marked." loading="lazy">
+              <img src="https://weiniverse.com/media/seamless/seamless-cover.jpg" alt="Seamless splitting a sunset panorama into two carousel slides, with the slide boundaries marked." loading="lazy">
             </figure>
 
             <div class="glass dp-block">
@@ -1533,15 +1546,24 @@
               <p>Pick a number of slides and a shape. Auto keeps the whole photo and chooses something between 1.91:1 and 3:4; 4:5, 3:4 and 1:1 fill the frame and quietly drop the edges. When the photo doesn't fill the frame, the empty space becomes a blurred copy of itself — or black, white or a colour. Files land at 1080, 1440 or 2160 px, named after the photo and the slide number, so they upload in the right order.</p>
             </div>
 
-            <div class="glass dp-block">
-              <p class="dp-kicker"><span>02</span>Reel</p>
-              <p>A pan is two points and a length: where it starts, where it ends, eight seconds in between, and a small zoom so the frame doesn't feel dead. Export it, and you have a Reel. There's no timeline to learn.</p>
+            <div class="glass dp-block dp-split">
+              <div class="dp-split-text">
+                <p class="dp-kicker"><span>02</span>Reel</p>
+                <p>A pan is two points and a length: where it starts, where it ends, eight seconds in between, and a small zoom so the frame doesn't feel dead. Export it, and you have a Reel. There's no timeline to learn.</p>
+              </div>
+              <figure class="dp-split-media">
+                <video src="https://weiniverse.com/media/seamless/mission-beach-reel.mp4" poster="https://weiniverse.com/media/seamless/mission-beach-reel-poster.jpg" controls preload="none" playsinline aria-label="A twenty-second Reel made from one still photo of Mission Beach at sunset"></video>
+              </figure>
             </div>
 
             <div class="glass dp-block">
               <p class="dp-kicker"><span>03</span>Batch</p>
               <p>Hikes and weddings arrive in tens. Batch runs the same steps over up to ten photos and writes them into a folder. The folder picker needs Chrome; the rest runs anywhere.</p>
             </div>
+
+            <figure class="glass dp-block cd-shot">
+              <img src="https://weiniverse.com/media/seamless/seamless-batch.png" alt="Seamless batch screen: two photos, each running through a carousel step and a fit step, with an estimate of the export size and time." loading="lazy">
+            </figure>
 
             <div class="glass dp-block">
               <p class="dp-kicker"><span>04</span>Nothing is uploaded</p>
