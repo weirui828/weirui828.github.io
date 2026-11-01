@@ -2659,23 +2659,153 @@
 
     // ----- The Big Dipper: real star positions (scaled), bowl first, then the handle -----
     // The four bowl stars are the tabs; the handle's three stars wait for future tabs.
-    // Real relative positions of the seven stars (RA/Dec projected, then flipped so the
-    // handle lies flat to the west, as the Dipper does on an autumn evening: 北斗西指，天下皆秋).
-    // Bowl: Dubhe, Merak, Phecda, Megrez. Handle: Alioth, Mizar, Alkaid.
-    const DIPPER = [[325, 96], [297, 150], [209, 135], [198, 84], [138, 64], [90, 50], [25, 85]];
-    const SEGMENTS = [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]];
+    // The seven stars (J2000). The nav draws them the way the sky actually looks from the
+    // visitor's own timezone right now: the constellation turns with the hour and the latitude.
+    const SKY_STARS = [
+      { ra: 165.9319, dec: 61.7511 },   // 天枢 Dubhe
+      { ra: 165.4607, dec: 56.3825 },   // 天璇 Merak
+      { ra: 178.4575, dec: 53.6948 },   // 天玑 Phecda
+      { ra: 183.8564, dec: 57.0326 },   // 天权 Megrez
+      { ra: 193.5073, dec: 55.9598 },   // 玉衡 Alioth
+      { ra: 200.9814, dec: 54.9254 },   // 开阳 Mizar
+      { ra: 206.8852, dec: 49.3133 },   // 摇光 Alkaid
+    ];
+    // Rough city coordinates per IANA zone — enough to aim a decorative sky chart.
+    const TZ_COORDS = {
+      "Asia/Shanghai": [31.2, 121.5], "Asia/Chongqing": [29.6, 106.5], "Asia/Urumqi": [43.8, 87.6],
+      "Asia/Hong_Kong": [22.3, 114.2], "Asia/Taipei": [25.0, 121.5], "Asia/Tokyo": [35.7, 139.7],
+      "Asia/Seoul": [37.6, 127.0], "Asia/Singapore": [1.35, 103.8], "Asia/Bangkok": [13.75, 100.5],
+      "Asia/Jakarta": [-6.2, 106.8], "Asia/Manila": [14.6, 121.0], "Asia/Kolkata": [22.6, 88.4],
+      "Asia/Karachi": [24.9, 67.0], "Asia/Dubai": [25.2, 55.3], "Europe/London": [51.5, -0.13],
+      "Europe/Paris": [48.9, 2.35], "Europe/Berlin": [52.5, 13.4], "Europe/Madrid": [40.4, -3.7],
+      "Europe/Rome": [41.9, 12.5], "Europe/Amsterdam": [52.4, 4.9], "Europe/Stockholm": [59.3, 18.1],
+      "Europe/Moscow": [55.75, 37.6], "Europe/Istanbul": [41.0, 29.0], "Europe/Zurich": [47.4, 8.5],
+      "Africa/Cairo": [30.0, 31.2], "Africa/Lagos": [6.5, 3.4], "Africa/Johannesburg": [-26.2, 28.0],
+      "America/New_York": [40.7, -74.0], "America/Chicago": [41.9, -87.6], "America/Denver": [39.7, -105.0],
+      "America/Los_Angeles": [34.05, -118.24], "America/Vancouver": [49.3, -123.1],
+      "America/Toronto": [43.7, -79.4], "America/Mexico_City": [19.4, -99.1],
+      "America/Sao_Paulo": [-23.5, -46.6], "America/Argentina/Buenos_Aires": [-34.6, -58.4],
+      "Australia/Sydney": [-33.9, 151.2], "Australia/Melbourne": [-37.8, 145.0],
+      "Australia/Brisbane": [-27.5, 153.0], "Australia/Perth": [-31.95, 115.9],
+      "Pacific/Auckland": [-36.85, 174.8],
+    };
+    const NAV_W = 350, NAV_H = 200, NAV_PAD = 22;
+
+    const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+    const dot3 = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
+    const cross3 = (a, b) => ({ x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x });
+    const unit3 = a => { const l = Math.hypot(a.x, a.y, a.z) || 1; return { x: a.x / l, y: a.y / l, z: a.z / l }; };
+    const enu = (altDeg, azDeg) => {
+      const a = altDeg * D2R, z = azDeg * D2R;
+      return { x: Math.cos(a) * Math.sin(z), y: Math.cos(a) * Math.cos(z), z: Math.sin(a) };
+    };
+    const julianDay = date => {
+      const ms = date.getTime();
+      return ms / 86400000 + 2440587.5;
+    };
+    const gmstDeg = jd => {
+      const T = (jd - 2451545.0) / 36525;
+      return (280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T - T * T * T / 38710000) % 360;
+    };
+    function altAz(star, lst, lat) {
+      const H = (lst - star.ra) * D2R, dec = star.dec * D2R, phi = lat * D2R;
+      const alt = Math.asin(Math.sin(dec) * Math.sin(phi) + Math.cos(dec) * Math.cos(phi) * Math.cos(H));
+      const az = Math.atan2(-Math.cos(dec) * Math.sin(H),
+                            Math.sin(dec) * Math.cos(phi) - Math.cos(dec) * Math.sin(phi) * Math.cos(H));
+      return { alt: alt * R2D, az: ((az * R2D) % 360 + 360) % 360 };
+    }
+
+    function skyLocation() {
+      let zone = "";
+      try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+      const offset = -new Date().getTimezoneOffset() / 60;
+      const hit = TZ_COORDS[zone];
+      return hit ? { lat: hit[0], lon: hit[1] } : { lat: 35, lon: offset * 15 };
+    }
+
+    // Project the seven stars the way an observer sees them: zenith up, fitted into the nav box.
+    function projectedSky() {
+      const loc = skyLocation();
+      const lst = ((gmstDeg(julianDay(new Date())) + loc.lon) % 360 + 360) % 360;
+      const vecs = SKY_STARS.map(st => { const p = altAz(st, lst, loc.lat); return enu(p.alt, p.az); });
+      const center = unit3(vecs.reduce((acc, v) => ({ x: acc.x + v.x, y: acc.y + v.y, z: acc.z + v.z }), { x: 0, y: 0, z: 0 }));
+      let up = { x: -center.z * center.x, y: -center.z * center.y, z: 1 - center.z * center.z };
+      up = Math.hypot(up.x, up.y, up.z) < 1e-6 ? { x: 0, y: 1, z: 0 } : unit3(up);
+      const right = unit3(cross3(center, up));
+      const flat = vecs.map(v => {
+        const den = dot3(v, center);
+        return { x: dot3(v, right) / den, y: -dot3(v, up) / den };
+      });
+      const xs = flat.map(p => p.x), ys = flat.map(p => p.y);
+      const minx = Math.min(...xs), maxx = Math.max(...xs);
+      const miny = Math.min(...ys), maxy = Math.max(...ys);
+      const scale = Math.min((NAV_W - NAV_PAD * 2) / (maxx - minx), (NAV_H - NAV_PAD * 2) / (maxy - miny));
+      const ox = (NAV_W - (maxx - minx) * scale) / 2 - minx * scale;
+      const oy = (NAV_H - (maxy - miny) * scale) / 2 - miny * scale;
+      return flat.map(p => [Math.round(p.x * scale + ox), Math.round(p.y * scale + oy)]);
+    }
+
+    let DIPPER = projectedSky();
+    const SEGMENTS = [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]];   // bowl + handle
     const TAB_COLORS = { "tab-building": "var(--violet)", "tab-writing": "var(--rose)", "tab-capturing": "var(--emerald)", "tab-wandering": "var(--cyan)" };
     const socials = [...document.querySelectorAll(".socials a")];
     const skyLines = nav.querySelector(".sky-lines");
     const starItems = [...nav.querySelectorAll("li")];
-    starItems.forEach((li, i) => { li.style.setProperty("--x", `${DIPPER[i][0]}px`); li.style.setProperty("--y", `${DIPPER[i][1]}px`); });
-    const lines = SEGMENTS.map(([a, b]) => {
+    const lines = SEGMENTS.map(() => {
       const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      l.setAttribute("x1", DIPPER[a][0]); l.setAttribute("y1", DIPPER[a][1]);
-      l.setAttribute("x2", DIPPER[b][0]); l.setAttribute("y2", DIPPER[b][1]);
       skyLines.append(l);
       return l;
     });
+
+    // while the constellation turns, keep the four tab labels inside the box and apart
+    function boxFor(pos, x, y, w) {
+      if (pos === "right") return { x: x + 12, y: y - 10, w, h: 20 };
+      if (pos === "left") return { x: x - 12 - w, y: y - 10, w, h: 20 };
+      if (pos === "below") return { x: x - w / 2, y: y + 10, w, h: 20 };
+      return { x: x + 8, y: y - 30, w, h: 20 };
+    }
+    const hits = (a, b) => !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
+    function labelFor(i, placed) {
+      const [x, y] = DIPPER[i];
+      const w = (starItems[i].querySelector(".name")?.textContent || "").length * 8.4 + 2;
+      const order = x >= NAV_W / 2 ? ["left", "right", "below", "above"] : ["right", "left", "below", "above"];
+      let best = null, bestOverlap = Infinity;
+      for (const pos of order) {
+        const b = boxFor(pos, x, y, w);
+        const outside = b.x < 0 || b.y < 0 || b.x + b.w > NAV_W || b.y + b.h > NAV_H;
+        const overlap = placed.filter(p => hits(b, p)).length + (outside ? 2 : 0);
+        if (overlap === 0) return pos;
+        if (overlap < bestOverlap) { bestOverlap = overlap; best = pos; }
+      }
+      return best;
+    }
+
+    function paintDipper() {
+      const placed = [];
+      starItems.forEach((li, i) => {
+        li.style.setProperty("--x", DIPPER[i][0] + "px");
+        li.style.setProperty("--y", DIPPER[i][1] + "px");
+        if (i < tabs.length) {
+          const pos = labelFor(i, placed);
+          li.setAttribute("data-label", pos);
+          placed.push(boxFor(pos, DIPPER[i][0], DIPPER[i][1], (li.querySelector(".name")?.textContent || "").length * 8.4 + 2));
+        }
+      });
+      lines.forEach((l, k) => {
+        const [a, b] = SEGMENTS[k];
+        l.setAttribute("x1", DIPPER[a][0]); l.setAttribute("y1", DIPPER[a][1]);
+        l.setAttribute("x2", DIPPER[b][0]); l.setAttribute("y2", DIPPER[b][1]);
+      });
+    }
+    paintDipper();
+
+    // the sky turns 15° per hour; recomputing once an hour is enough (a handful of trig calls)
+    setInterval(() => {
+      DIPPER = projectedSky();
+      paintDipper();
+      const active = tabs.find(t => t.getAttribute("aria-selected") === "true");
+      if (active) lightUp(active);
+    }, 3600000);
 
     // Light the constellation up to the active star: on the Dipper, the lines from the first star to it;
     // on the star line, the track from the first star to it
