@@ -2862,13 +2862,18 @@
     }
     paintDipper();
 
-    // the sky turns 15° per hour; recomputing once an hour is enough (a handful of trig calls)
-    setInterval(() => {
+    // the sky turns 15° per hour; a five-minute tick keeps it drifting smoothly, and
+    // a background tab that was asleep gets a fresh read as soon as it is visible again
+    function refreshSky() {
       DIPPER = projectedSky();
       paintDipper();
       const active = tabs.find(t => t.getAttribute("aria-selected") === "true");
       if (active) lightUp(active);
-    }, 3600000);
+    }
+    setInterval(refreshSky, 300000);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") refreshSky();
+    });
 
     // Light the constellation up to the active star: on the Dipper, the lines from the first star to it;
     // on the star line, the track from the first star to it
