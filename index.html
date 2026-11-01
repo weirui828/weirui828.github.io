@@ -324,7 +324,7 @@
       .star { position: absolute; left: -4px; top: -4px; }
       .spare .star { left: -3px; top: -3px; }
       nav a .star::after { content: ""; position: absolute; inset: -10px; }   /* bigger click target */
-      .name { position: absolute; line-height: 20px; white-space: nowrap; }
+      .name { position: absolute; line-height: 20px; white-space: nowrap; text-shadow: 0 1px 6px rgba(5, 6, 15, .92), 0 0 16px rgba(5, 6, 15, .85); }
       [data-label="right"] .name { left: 12px; top: -10px; }
       [data-label="left"] .name { right: 12px; top: -10px; }
       [data-label="below"] .name { left: 0; top: 10px; transform: translateX(-50%); }
@@ -1245,8 +1245,8 @@
       <nav aria-label="Sections">
         <svg class="sky-lines" aria-hidden="true"></svg>
         <ul role="tablist">
-          <li role="presentation" data-label="right"><a href="#building" id="tab-building" role="tab" aria-controls="building" aria-selected="true"><span class="star"></span><span class="name">Building</span></a></li>
-          <li role="presentation" data-label="left"><a href="#writing" id="tab-writing" role="tab" aria-controls="writing" aria-selected="false" tabindex="-1"><span class="star"></span><span class="name">Writing</span></a></li>
+          <li role="presentation" data-label="left"><a href="#building" id="tab-building" role="tab" aria-controls="building" aria-selected="true"><span class="star"></span><span class="name">Building</span></a></li>
+          <li role="presentation" data-label="below"><a href="#writing" id="tab-writing" role="tab" aria-controls="writing" aria-selected="false" tabindex="-1"><span class="star"></span><span class="name">Writing</span></a></li>
           <li role="presentation" data-label="below"><a href="#capturing" id="tab-capturing" role="tab" aria-controls="capturing" aria-selected="false" tabindex="-1"><span class="star"></span><span class="name">Capturing</span></a></li>
           <li role="presentation" data-label="above"><a href="#wandering" id="tab-wandering" role="tab" aria-controls="wandering" aria-selected="false" tabindex="-1"><span class="star"></span><span class="name">Wandering</span></a></li>
           <li class="spare" role="presentation" aria-hidden="true"><span class="star"></span></li>
@@ -2613,7 +2613,10 @@
 
     // ----- The Big Dipper: real star positions (scaled), bowl first, then the handle -----
     // The four bowl stars are the tabs; the handle's three stars wait for future tabs.
-    const DIPPER = [[77, 34], [74, 95], [156, 126], [190, 88], [250, 100], [297, 112], [334, 176]];
+    // Real relative positions of the seven stars (RA/Dec projected, then flipped so the
+    // handle points west, as the Dipper does on an autumn evening: 北斗西指，天下皆秋).
+    // Bowl: Dubhe, Merak, Phecda, Megrez. Handle: Alioth, Mizar, Alkaid.
+    const DIPPER = [[288, 25], [291, 87], [206, 118], [170, 79], [106, 92], [57, 104], [18, 168]];
     const SEGMENTS = [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]];
     const TAB_COLORS = { "tab-building": "var(--violet)", "tab-writing": "var(--rose)", "tab-capturing": "var(--emerald)", "tab-wandering": "var(--cyan)" };
     const socials = [...document.querySelectorAll(".socials a")];
