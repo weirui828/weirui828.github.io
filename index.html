@@ -325,6 +325,11 @@
       .spare .star { left: -3px; top: -3px; }
       nav a .star::after { content: ""; position: absolute; inset: -10px; }   /* bigger click target */
       .name { position: absolute; line-height: 20px; white-space: nowrap; text-shadow: 0 1px 6px rgba(5, 6, 15, .92), 0 0 16px rgba(5, 6, 15, .85); }
+      /* the constellation stays unlabelled until you hover it (or tab to it) */
+      .name { opacity: 0; transition: opacity .18s ease; }
+      nav a:hover .name,
+      nav a:focus-visible .name { opacity: 1; }
+      @media (prefers-reduced-motion: reduce) { .name { transition: none; } }
       [data-label="right"] .name { left: 12px; top: -10px; }
       [data-label="left"] .name { right: 12px; top: -10px; }
       [data-label="below"] .name { left: 0; top: 10px; transform: translateX(-50%); }
