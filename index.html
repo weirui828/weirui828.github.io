@@ -1122,7 +1122,7 @@
     /* ---------- Building: orbital project belt ---------- */
     #building .belt {
       position: relative;
-      height: clamp(180px, 17vw, 232px);
+      height: clamp(156px, 14vw, 200px);
       margin: 0 0 12px;
       overflow: hidden;
       touch-action: pan-y;
@@ -1194,7 +1194,7 @@
       text-transform: uppercase; color: var(--faint); margin-bottom: 10px;
     }
     @media (max-width: 900px) {
-      #building .belt { height: 168px; }
+      #building .belt { height: 150px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2980,9 +2980,9 @@
         W, H, sunSize,
         cx: sunSize * (0.5 - 0.52),
         cy: H * 0.52,
-        focusX: W * (compact() ? 0.68 : 0.54),
+        focusX: W * (compact() ? 0.56 : 0.54),
         focusY: H * 0.52,   // same height as the sun centre, so the planet is the ellipse vertex
-        spacing: compact() ? 92 : Math.max(96, Math.round(W * 0.14)),
+        spacing: compact() ? 76 : Math.max(96, Math.round(W * 0.14)),
       };
     }
     const planetY = (x, g) => g.focusY + 20 * Math.pow((x - g.focusX) / (g.W * 0.62), 2);
