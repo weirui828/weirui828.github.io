@@ -3225,7 +3225,7 @@
         cy: H * 0.52,
         focusX: W * (compact() ? 0.56 : 0.54),
         focusY: H * 0.52,   // same height as the sun centre, so the planet is the ellipse vertex
-        spacing: compact() ? 68 : Math.max(74, Math.round(W * 0.105)),
+        spacing: compact() ? 82 : Math.max(94, Math.round(W * 0.13)),
       };
     }
     const planetY = (x, g) => g.focusY + 20 * Math.pow((x - g.focusX) / (g.W * 0.62), 2);
@@ -3368,6 +3368,21 @@
     }
     belt.addEventListener("pointerup", endDrag);
     belt.addEventListener("pointercancel", endDrag);
+
+    // trackpads: a horizontal two-finger swipe moves the belt; vertical scrolling is left alone
+    let wheelSnap = null;
+    belt.addEventListener("wheel", e => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      const g = geom();
+      progress = Math.max(-0.35, Math.min(N - 0.65, progress + e.deltaX / g.spacing));
+      place(g);
+      clearTimeout(wheelSnap);
+      wheelSnap = setTimeout(() => {
+        const target = Math.max(0, Math.min(N - 1, Math.round(progress)));
+        animateTo(target, 320);
+      }, 160);
+    }, { passive: false });
 
     belt.tabIndex = 0;
     belt.addEventListener("keydown", e => {
