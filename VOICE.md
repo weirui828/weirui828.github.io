@@ -56,5 +56,5 @@ Seamless, hero:
 
 ## What is not a reference
 
-Vibecab is marked Work in progress. Its copy is a sketch and changes as the project changes.
+VibeCab is marked Work in progress. Its copy is a sketch and changes as the project changes.
 Do not treat it as the voice.
