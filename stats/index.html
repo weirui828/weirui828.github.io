@@ -284,8 +284,8 @@
   </style>
 
   <!-- Pinned D3 and TopoJSON libraries with integrity hashes -->
-  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
+  <script src="vendor/d3.min.js"></script>
+  <script src="vendor/topojson-client.min.js"></script>
 </head>
 <body>
   <main>
@@ -404,7 +404,7 @@
 
   <script>
     const API = "https://weiniverse-stats.aug828.workers.dev/stats";
-    const WORLD_ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json";
+    const WORLD_ATLAS_URL = "vendor/countries-110m.json";
     const fmt = new Intl.NumberFormat("en");
     const countryName = new Intl.DisplayNames(["en"], { type: "region" });
     const $ = (id) => document.getElementById(id);
