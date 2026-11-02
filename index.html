@@ -276,12 +276,15 @@
     nav a[aria-selected="true"] .star {
       opacity: 1;
       background: var(--c);
-      box-shadow: 0 0 8px var(--c), 0 0 20px var(--c);
+      box-shadow: 0 0 10px var(--c), 0 0 26px var(--c);
       transform: scale(1.5);
-      animation: twinkle 2.4s ease-in-out infinite;
+      animation: twinkle 2.6s ease-in-out infinite;
     }
     #tab-wandering[aria-selected="true"] .star { background: linear-gradient(90deg, var(--cyan), var(--gold)); }
-    @keyframes twinkle { 50% { box-shadow: 0 0 4px var(--c), 0 0 11px var(--c); } }
+    @keyframes twinkle {
+  0%, 100% { box-shadow: 0 0 10px var(--c), 0 0 26px var(--c); transform: scale(1.5); }
+  50% { box-shadow: 0 0 2px var(--c), 0 0 6px var(--c); transform: scale(1.16); opacity: .8; }
+}
     /* The Dipper's handle: three faint stars kept for future tabs */
     .spare .star {
       width: 6px;
