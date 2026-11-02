@@ -719,6 +719,7 @@
     }
 
     // Tab switching
+    let lastData;   // declared before setTab runs, which reads it
     const tabButtons = document.querySelectorAll('.tabs button[role="tab"]');
     const tabPanels = document.querySelectorAll(".tab-panel");
 
@@ -773,7 +774,8 @@
         drawList("referrers", data.referrers);
         drawList("countries", data.countries, formatCountry);
 
-        drawMap(data);
+        // the atlas is a separate download; only fetch it when the map is on screen
+        if (!document.getElementById("panel-geo").hidden) drawMap(data);
 
         drawList("devices", data.devices);
         drawList("os", data.os);
@@ -799,7 +801,6 @@
     }
 
     // Redraw at the new width, so the chart text never stretches
-    let lastData;
     addEventListener("resize", () => {
       if (lastData && !$("panel-summary").hidden) drawChart(lastData);
     });
