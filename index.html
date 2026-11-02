@@ -1215,6 +1215,14 @@
       #building .belt { height: 150px; }
     }
 
+    #building .dp-shot-narrow { display: flex; justify-content: center; padding: 18px; }
+    #building .dp-shot-narrow img { width: min(320px, 100%); display: block; border-radius: 12px; }
+    #building .dp-video { display: flex; justify-content: center; padding: 18px; }
+    #building .dp-video video {
+      width: min(320px, 100%); display: block; border-radius: 12px; background: #000;
+      box-shadow: 0 18px 48px -18px rgba(0, 0, 0, .85);
+    }
+
     #building .dp-wip {
       display: inline-block; font-family: "Space Grotesk", monospace;
       font-size: .6875rem; letter-spacing: .16em; text-transform: uppercase;
@@ -1602,26 +1610,47 @@
           <article class="dp">
             <header class="glass dp-hero is-linkable">
               <div class="dp-intro">
-                <p class="dp-wip">Work in progress</p>
                 <h3>Skyeye</h3>
-                <p class="dp-lede">Skyeye is a menu bar app for the local services on my Mac. I start and stop them from the menu bar, and a canvas shows which service depends on which.</p>
+                <p class="dp-lede">Vibe coding gave me more projects, and a lot more local servers. Half of them were still running and I couldn't tell which. SkyEye is a macOS menu bar app that keeps all of it in one place.</p>
               </div>
               <a class="dp-hero-link" style="color: #8fb6dd" href="https://github.com/weirui828/skyeye" target="_blank" rel="noopener">GitHub</a>
             </header>
 
+            <figure class="glass dp-block dp-shot-narrow">
+              <img src="https://weiniverse.com/media/skyeye/services.png" alt="The SkyEye menu bar panel: four local services, three running and one stopped, each with its port, CPU and memory." loading="lazy">
+            </figure>
+
             <div class="glass dp-block">
-              <p class="dp-kicker"><span>01</span>What it does</p>
-              <p>Each service gets a switch in the menu bar. The canvas draws the dependencies between services, so it is clear what has to start first. Logs sit in the same place as the service.</p>
+              <p class="dp-kicker"><span>01</span>Why</p>
+              <p>I kept opening a terminal to see what was up. Then another one, because I forgot the port. Then I'd find a server from a project I hadn't touched in weeks, still using memory. The information existed. It just lived in too many places.</p>
             </div>
 
             <div class="glass dp-block">
-              <p class="dp-kicker"><span>02</span>Why</p>
-              <p>Local development ends up as a pile of terminals. You forget which one is the database, which one is the API, and what has to start first. Skyeye keeps that in one place.</p>
+              <p class="dp-kicker"><span>02</span>What it does</p>
+              <p>The menu bar lists every service with its port, CPU and memory, and a switch to start or stop it. Start an app and its dependencies start first, in order. Click a service and its logs open next to it.</p>
+            </div>
+
+            <figure class="glass dp-block dp-video">
+              <video src="https://weiniverse.com/media/skyeye/promo.mp4" poster="https://weiniverse.com/media/skyeye/promo-poster.jpg" controls preload="none" playsinline aria-label="A thirty-five second demo of SkyEye: services in the menu bar, live logs, the dependency canvas, and registering a service through MCP"></video>
+            </figure>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>03</span>Canvas</p>
+              <p>The canvas draws the stack: apps at the top, dependencies below, a line between each pair. Drag a card to move it, drag from one card to another to add a dependency. Fit tidies it up when it gets messy.</p>
+            </div>
+
+            <figure class="glass dp-block cd-shot">
+              <img src="https://weiniverse.com/media/skyeye/canvas.png" alt="The SkyEye dependency canvas: web-app above api-server above demo-store, with docs on the side, joined by arrows." loading="lazy">
+            </figure>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>04</span>MCP</p>
+              <p>SkyEye also speaks MCP. Ask your agent to register an app and it fills in the command, the port and the dependencies. Nothing runs until you approve the command.</p>
             </div>
 
             <div class="glass dp-block">
-              <p class="dp-kicker"><span>03</span>Status</p>
-              <p>Early developer preview. The interface can change. I check the CI results before I use a new build.</p>
+              <p class="dp-kicker"><span>05</span>Status</p>
+              <p>Open source, early developer preview, macOS 14+ on Apple Silicon. The repository is on GitHub, and I would like to hear what breaks.</p>
             </div>
           </article>
         </div>

@@ -56,5 +56,5 @@ Seamless, hero:
 
 ## What is not a reference
 
-Vibecab and Skyeye are marked Work in progress. Their copy is a sketch and changes as the
-projects change. Do not treat it as the voice.
+Vibecab is marked Work in progress. Its copy is a sketch and changes as the project changes.
+Do not treat it as the voice.
