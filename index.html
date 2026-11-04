@@ -1223,6 +1223,17 @@
       width: min(320px, 100%); display: block; border-radius: 12px; background: #000;
       box-shadow: 0 18px 48px -18px rgba(0, 0, 0, .85);
     }
+    #building .dp-video-wide video { width: 100%; }
+    #building .lg-cast { list-style: none; margin: 14px 0; display: grid; gap: 8px; }
+    #building .lg-cast li { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; color: var(--muted); }
+    #building .lg-cast b { color: var(--text); font-weight: 600; }
+    #building .lg-shots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    #building .lg-shots img { display: block; width: 100%; height: auto; border-radius: 10px; }
+    #building .lg-shots figcaption { margin-top: 6px; font-size: .8125rem; color: var(--muted); }
+    @media (max-width: 640px) {
+      #building .lg-shots { grid-template-columns: 1fr; }
+      #building .lg-cast li { grid-template-columns: 1fr; gap: 2px; }
+    }
 
     #building .dp-wip {
       display: inline-block; font-family: "Space Grotesk", monospace;
@@ -1361,13 +1372,14 @@
               <a class="dp-hero-link" style="color: #e3867a" href="https://github.com/weirui828/legio" target="_blank" rel="noopener">GitHub</a>
             </header>
 
-            <figure class="glass dp-block dp-video">
+            <figure class="glass dp-block dp-video dp-video-wide">
               <video src="https://weiniverse.com/media/legio/promo.mp4" poster="https://weiniverse.com/media/legio/promo-poster.jpg" controls preload="none" playsinline aria-label="A one-minute demo of Legio: the Roman camp with one tent per project, the soldiers at work inside a tent, and a job opened to show what each agent did"></video>
             </figure>
 
             <div class="glass dp-block">
               <p class="dp-kicker"><span>01</span>How it works</p>
               <p>You label a GitHub issue. The agents do their work. You get a pull request to review and merge. And while all that happens, you can watch the little guys work.</p>
+              <p>If the checks fail, the job goes back to the builder before any reviewer sees it. And Legio never merges for you: the merge button stays yours.</p>
             </div>
 
             <div class="glass dp-block">
@@ -1382,11 +1394,42 @@
 
             <div class="glass dp-block">
               <p class="dp-kicker"><span>04</span>A Roman army</p>
-              <p>Each agent has a post: intake, spec, build, review, approval. They have Roman titles, portraits, and a place in the tent. You can see who is working, and open a job to read what they have actually done.</p>
+              <p>Each agent has a post: intake, spec, build, review, approval. They have Roman titles, portraits, and a place in the tent. There are eight of them:</p>
+              <ul class="lg-cast">
+                <li><b>Tesserarius</b><span>the doorkeeper. Decides if an issue is worth building, how much of it, and how risky it is.</span></li>
+                <li><b>Signifer</b><span>the spec-writer. Writes down what "done" means, and what is out of scope.</span></li>
+                <li><b>Fabri</b><span>the builder. Writes the code, runs the checks, and opens the pull request.</span></li>
+                <li><b>Probator</b><span>the inspector. Checks that the work is correct, in scope, and really tested.</span></li>
+                <li><b>Medicus</b><span>the surgeon. Reviews security: injection, privileges, leaks, dependencies.</span></li>
+                <li><b>Mensor</b><span>the surveyor. Checks that an ordinary user can get through the change.</span></li>
+                <li><b>Librator</b><span>the level-keeper. Checks alignment, spacing and the look.</span></li>
+                <li><b>Primus Pilus</b><span>the arbiter. Decides if the pull request is ready for you, or asks you one question.</span></li>
+              </ul>
+              <p>Medicus only joins when a change touches security. Mensor and Librator only join when a person will see the change.</p>
+            </div>
+
+            <figure class="glass dp-block cd-shot">
+              <img src="https://weiniverse.com/media/legio/cast.jpg" alt="Milites, the cast page: eight chibi Roman soldiers on cards, each with a title, a role and one line about the job. Signifer and Fabri are on duty." loading="lazy">
+            </figure>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>05</span>Watching them work</p>
+              <p>Each project is a tent. Inside, a board shows its jobs in three columns: waiting, in progress and finished. The soldier who is working right now sits at the desk. Click a job to see its stage, round, checks, pull request and cost, and then read every file the agents wrote for it.</p>
+              <div class="lg-shots">
+                <figure>
+                  <img src="https://weiniverse.com/media/legio/tent.jpg" alt="Inside a tent: the job board on the left, and Fabri writing at the desk on the right." loading="lazy">
+                  <figcaption>The tent, with Fabri at the desk.</figcaption>
+                </figure>
+                <figure>
+                  <img src="https://weiniverse.com/media/legio/job.jpg" alt="One job opened over the tent: stage build, round 1 of 3, with fields for gate, pull request, cost and who it is waiting on." loading="lazy">
+                  <figcaption>One job, opened.</figcaption>
+                </figure>
+              </div>
+              <p class="dp-cap" style="color: var(--faint)">The screenshots use demo data.</p>
             </div>
 
             <div class="glass dp-block">
-              <p class="dp-kicker"><span>05</span>Any coding agent</p>
+              <p class="dp-kicker"><span>06</span>Any coding agent</p>
               <p>The workflow lives outside Claude Code, with adapters for Codex, DeepSeek's harness and Gemini too. Claude Code is the one I have tested from start to finish so far.</p>
             </div>
           </article>
