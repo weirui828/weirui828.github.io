@@ -1351,7 +1351,48 @@
       </div>
 
       <div class="belt-panels" id="beltPanels">
-        <div class="belt-panel" data-project="dream-pet">
+        <div class="belt-panel" data-project="legio">
+          <article class="dp">
+            <header class="glass dp-hero is-linkable">
+              <div class="dp-intro">
+                <h3>Legio</h3>
+                <p class="dp-lede">I built the cutest software factory. A software factory is a team of coding agents with a workflow: you give them a feature or an issue, and they write a spec, build it, run checks, and review each other's work. Mine is called Legio. It has a web UI with a Roman camp, one tent per project, and tiny soldiers at desks doing the work.</p>
+              </div>
+              <a class="dp-hero-link" style="color: #e3867a" href="https://github.com/weirui828/legio" target="_blank" rel="noopener">GitHub</a>
+            </header>
+
+            <figure class="glass dp-block dp-video">
+              <video src="https://weiniverse.com/media/legio/promo.mp4" poster="https://weiniverse.com/media/legio/promo-poster.jpg" controls preload="none" playsinline aria-label="A one-minute demo of Legio: the Roman camp with one tent per project, the soldiers at work inside a tent, and a job opened to show what each agent did"></video>
+            </figure>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>01</span>How it works</p>
+              <p>You label a GitHub issue. The agents do their work. You get a pull request to review and merge. And while all that happens, you can watch the little guys work.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>02</span>Where the idea came from</p>
+              <p>I got the idea from ZazenCodes' <a class="dp-inline-link" href="https://www.youtube.com/watch?v=ctoaIC4LHmI" target="_blank" rel="noopener">software factory with Claude Code</a> (<a class="dp-inline-link" href="https://github.com/zazencodes/zazencodes-season-3/tree/main/src/software-factory-claude-code" target="_blank" rel="noopener">source code</a>). I tried it, liked it, and wanted to take it further. Besides making it cute, I changed three things.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>03</span>Many projects</p>
+              <p>His factory runs inside one project, and a Claude Code session runs it. I split mine into two layers. A <em>centuria</em> is the factory inside each project. The <em>legio</em> coordinates across projects. Each centuria can also run on its own.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>04</span>A Roman army</p>
+              <p>Each agent has a post: intake, spec, build, review, approval. They have Roman titles, portraits, and a place in the tent. You can see who is working, and open a job to read what they have actually done.</p>
+            </div>
+
+            <div class="glass dp-block">
+              <p class="dp-kicker"><span>05</span>Any coding agent</p>
+              <p>The workflow lives outside Claude Code, with adapters for Codex, DeepSeek's harness and Gemini too. Claude Code is the one I have tested from start to finish so far.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="belt-panel" data-project="dream-pet" hidden>
 
       <article class="dp">
         <header class="glass dp-hero">
@@ -3261,6 +3302,7 @@
     const ARC_OFFSET = 0;      // the arc passes through the planet centre
 
     const PROJECTS = [
+      { slug: "legio", title: "Legio", color: "#e3867a" },
       { slug: "dream-pet", title: "Dream Pet", color: "#f0b48a" },
       { slug: "cave-diver", title: "Cave Diver", color: "#9dc7b4" },
       { slug: "seamless", title: "Seamless", color: "#b9a7dd" },
