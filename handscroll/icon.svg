@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="bg" cx=".3" cy=".25" r=".9">
+      <stop offset="0" stop-color="#2a1a5e"/>
+      <stop offset="1" stop-color="#05060f"/>
+    </radialGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset=".6" stop-color="#f472b6"/>
+      <stop offset="1" stop-color="#fb923c"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7c2d5b"/>
+      <stop offset="1" stop-color="#2a1a5e"/>
+    </linearGradient>
+    <!-- Two slides; the scene is drawn once across both, so it lines up over the cut -->
+    <clipPath id="slides">
+      <rect x="8" y="16" width="22" height="32" rx="3"/>
+      <rect x="34" y="16" width="22" height="32" rx="3"/>
+    </clipPath>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <g clip-path="url(#slides)">
+    <rect x="8" y="16" width="48" height="22" fill="url(#sky)"/>
+    <circle cx="32" cy="36" r="8" fill="#fbbf24"/>
+    <rect x="8" y="37" width="48" height="11" fill="url(#water)"/>
+    <rect x="25" y="40" width="14" height="1.6" rx=".8" fill="#fbbf24" opacity=".85"/>
+    <rect x="27.5" y="43.5" width="9" height="1.4" rx=".7" fill="#fbbf24" opacity=".6"/>
+  </g>
+</svg>

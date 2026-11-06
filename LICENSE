@@ -29,5 +29,5 @@ assets/photos/, the text of the site, posts.json and stories.json) are
 Copyright (c) Wei Rui, all rights reserved. They may not be reused without
 permission.
 
-seamless/vendor/mp4-muxer.min.mjs is mp4-muxer by Vanilagy, used under its own
+handscroll/vendor/mp4-muxer.min.mjs is mp4-muxer by Vanilagy, used under its own
 MIT License: https://github.com/Vanilagy/mp4-muxer
