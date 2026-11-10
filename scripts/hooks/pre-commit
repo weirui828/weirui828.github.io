@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Before every commit: lock the work page again if it changed, and refuse to
+# commit a readable (unlocked) work/index.html.
+set -euo pipefail
+top=$(git rev-parse --show-toplevel)
+
+"$top/scripts/lock-work.sh"
+git add "$top/work/index.html"
+
+if ! git show :work/index.html | grep -c "staticrypt" >/dev/null; then
+  echo "pre-commit: work/index.html is not locked. Run scripts/lock-work.sh --force" >&2
+  exit 1
+fi
