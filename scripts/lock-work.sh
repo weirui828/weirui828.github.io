@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # Lock the work page with a password.
 #
-# The readable page lives outside git (WORK_SRC, default: Google Drive).
+# The readable page is work/index.src.html in the main checkout. Git ignores it.
 # This script encrypts it with StatiCrypt and writes the locked page to
 # work/index.html, which is the only version that is committed and published.
 #
 # Settings come from .env in the main checkout (never committed):
 #   WORK_PASSWORD=...            required
-#   WORK_SRC=/path/index.html    optional, the readable page
 #
 # Usage:
 #   scripts/lock-work.sh           lock again only if the page or password changed
@@ -27,7 +26,7 @@ for f in "$main_root/.env" "$top/.env"; do
   if [ -f "$f" ]; then set -a; . "$f"; set +a; fi
 done
 
-WORK_SRC=${WORK_SRC:-"$HOME/Library/CloudStorage/GoogleDrive-aug828@gmail.com/My Drive/weiniverse/work/index.html"}
+WORK_SRC="$main_root/work/index.src.html"
 out="$top/work/index.html"
 stamp="$common/work-lock.stamp"
 
@@ -63,7 +62,6 @@ npx -y "$STATICRYPT" "$tmp/index.html" \
   -p "$WORK_PASSWORD" \
   -c scripts/staticrypt.json \
   -d "$tmp/out" \
-  --short \
   --remember 30 \
   --template-title "Wei Rui · Work" \
   --template-instructions "This page is private. Enter the password you were given." \
