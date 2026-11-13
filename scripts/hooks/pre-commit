@@ -7,6 +7,11 @@ top=$(git rev-parse --show-toplevel)
 "$top/scripts/lock-work.sh"
 git add "$top/work/index.html"
 
+if git diff --cached --name-only | grep -qx "work/index.src.html"; then
+  echo "pre-commit: work/index.src.html is the readable page. Do not commit it." >&2
+  exit 1
+fi
+
 if ! git show :work/index.html | grep -c "staticrypt" >/dev/null; then
   echo "pre-commit: work/index.html is not locked. Run scripts/lock-work.sh --force" >&2
   exit 1
