@@ -279,6 +279,13 @@
     footer { margin-top: 28px; font-size: .8125rem; color: var(--faint); }
     footer label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; margin-top: 8px; }
     .status { color: var(--muted); margin-top: 20px; }
+    .login { display: grid; gap: 12px; max-width: 340px; margin-top: 20px; }
+    .login[hidden], .controls[hidden], #signout[hidden] { display: none; }
+    .login label { display: grid; gap: 6px; }
+    .login input, .login button, #signout { font: inherit; padding: 10px; border: 1px solid var(--violet); border-radius: 8px; }
+    .login input { background: var(--glass); color: var(--text); }
+    .login button, #signout { cursor: pointer; }
+    #signout { margin-top: 16px; }
   </style>
 
   <!-- Pinned D3 and TopoJSON libraries with integrity hashes -->
@@ -290,7 +297,14 @@
     <a class="back" href="../">← weiniverse.com</a>
     <h1>Visitor stats</h1>
 
-    <div class="controls">
+    <form class="login" id="login">
+      <label>Username<input id="username" autocomplete="username" value="wei" required /></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" required /></label>
+      <button type="submit">Sign in</button>
+    </form>
+    <button type="button" id="signout" hidden>Sign out</button>
+
+    <div class="controls" id="controls" hidden>
       <div class="tabs" role="tablist" aria-label="Stats views">
         <button type="button" role="tab" id="tab-summary" aria-controls="panel-summary" aria-selected="true">Summary</button>
         <button type="button" role="tab" id="tab-geo" aria-controls="panel-geo" aria-selected="false">Geo</button>
@@ -306,7 +320,7 @@
       </div>
     </div>
 
-    <p class="status" id="status">Loading…</p>
+    <p class="status" id="status" role="status">Sign in to view your analytics.</p>
 
     <div id="report" hidden>
       <!-- TAB 1: SUMMARY -->
@@ -401,10 +415,13 @@
 
   <script>
     const API = "https://weiniverse-stats.aug828.workers.dev/stats";
+    let authorization = null;
+    let requestSequence = 0;
     const WORLD_ATLAS_URL = "vendor/countries-110m.json";
     const fmt = new Intl.NumberFormat("en");
     const countryName = new Intl.DisplayNames(["en"], { type: "region" });
     const $ = (id) => document.getElementById(id);
+    const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
     // Standard ISO 3166-1 numeric code to ISO 3166-1 alpha-2 mapping
     const NUMERIC_TO_A2 = {
@@ -520,8 +537,8 @@
       if (!items || !items.length) return (list.innerHTML = `<li class="empty">Nothing yet</li>`);
       const max = items[0].views;
       list.innerHTML = items.map((it) => {
-        const text = String(label(it.name)).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-        return `<li data-code="${it.name}"><span class="fill" style="width:${(it.views / max) * 100}%"></span>` +
+        const text = escapeHTML(label(it.name));
+        return `<li data-code="${escapeHTML(it.name)}"><span class="fill" style="width:${(it.views / max) * 100}%"></span>` +
           `<span class="name" title="${text}">${text}</span><span class="num">${fmt.format(it.views)}</span></li>`;
       }).join("");
     }
@@ -613,7 +630,7 @@
           }
 
           countriesHtml += `<path class="${cls}" d="${d}" fill="${fill}" stroke="${stroke}" ` +
-            `data-code="${a2 || ''}" data-name="${a2 ? formatCountry(a2) : feature.properties.name}" data-views="${views}" />`;
+            `data-code="${escapeHTML(a2 || '')}" data-name="${escapeHTML(a2 ? formatCountry(a2) : feature.properties.name)}" data-views="${escapeHTML(views)}" />`;
         }
         countriesGroup.innerHTML = countriesHtml;
 
@@ -625,7 +642,7 @@
           const [cx, cy] = mapProjection([city.lon, city.lat]);
           if (isNaN(cx) || isNaN(cy)) continue;
 
-          pinsHtml += `<g class="city-pin" data-city="${city.city}" data-region="${city.region || ''}" data-country="${city.country}" data-views="${city.views}">` +
+          pinsHtml += `<g class="city-pin" data-city="${escapeHTML(city.city)}" data-region="${escapeHTML(city.region || '')}" data-country="${escapeHTML(city.country)}" data-views="${escapeHTML(city.views)}">` +
             `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3" fill="none" stroke="var(--cyan)" stroke-width="1.2">` +
               `<animate attributeName="r" from="3" to="12" dur="2.2s" repeatCount="indefinite" />` +
               `<animate attributeName="opacity" from="0.8" to="0" dur="2.2s" repeatCount="indefinite" />` +
@@ -655,16 +672,16 @@
             const region = target.dataset.region ? `, ${target.dataset.region}` : "";
             const flag = getFlagEmoji(target.dataset.country);
             const views = target.dataset.views;
-            tip.innerHTML = `<b>${flag} ${city}</b><span class="dim">${region}</span><br />${fmt.format(views)} <span>views</span>`;
+            tip.innerHTML = `<b>${flag} ${escapeHTML(city)}</b><span class="dim">${escapeHTML(region)}</span><br />${fmt.format(views)} <span>views</span>`;
           } else {
             const name = target.dataset.name;
             const views = target.dataset.views;
             const code = target.dataset.code;
-            tip.innerHTML = `<b>${name}</b><br />${fmt.format(views)} <span>views</span>`;
+            tip.innerHTML = `<b>${escapeHTML(name)}</b><br />${fmt.format(views)} <span>views</span>`;
 
             // Highlight corresponding list item
             document.querySelectorAll("#geo-countries li.highlighted").forEach((el) => el.classList.remove("highlighted"));
-            const li = document.querySelector(`#geo-countries li[data-code="${code}"]`);
+            const li = document.querySelector(`#geo-countries li[data-code="${CSS.escape(String(code))}"]`);
             if (li) li.classList.add("highlighted");
           }
 
@@ -689,10 +706,10 @@
           const maxCity = Math.max(1, ...cities.map((c) => c.views));
           cityList.innerHTML = cities.map((c) => {
             const flag = getFlagEmoji(c.country);
-            const region = c.region ? ` <span style="color:var(--faint);font-size:.8125rem;">(${c.region})</span>` : "";
-            const label = `${flag} ${c.city}${region}`;
+            const region = c.region ? ` <span style="color:var(--faint);font-size:.8125rem;">(${escapeHTML(c.region)})</span>` : "";
+            const label = `${flag} ${escapeHTML(c.city)}${region}`;
             return `<li><span class="fill" style="width:${(c.views / maxCity) * 100}%"></span>` +
-              `<span class="name" title="${c.city}">${label}</span><span class="num">${fmt.format(c.views)}</span></li>`;
+              `<span class="name" title="${escapeHTML(c.city)}">${label}</span><span class="num">${fmt.format(c.views)}</span></li>`;
           }).join("");
         }
 
@@ -700,12 +717,12 @@
         document.querySelectorAll("#geo-countries li").forEach((li) => {
           li.onmouseenter = () => {
             const code = li.dataset.code;
-            const path = document.querySelector(`.country-path[data-code="${code}"]`);
+            const path = document.querySelector(`.country-path[data-code="${CSS.escape(String(code))}"]`);
             if (path) path.classList.add("active");
           };
           li.onmouseleave = () => {
             const code = li.dataset.code;
-            const path = document.querySelector(`.country-path[data-code="${code}"]`);
+            const path = document.querySelector(`.country-path[data-code="${CSS.escape(String(code))}"]`);
             if (path) path.classList.remove("active");
           };
         });
@@ -756,11 +773,27 @@
     setTab(initialTab);
 
     async function load(days) {
+      if (!authorization) return;
+      const sequence = ++requestSequence;
       document.querySelectorAll(".range button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
       try {
-        const res = await fetch(`${API}?days=${days}`);
+        const res = await fetch(`${API}?days=${days}`, {
+          headers: { Authorization: authorization }, cache: "no-store", credentials: "omit", redirect: "error"
+        });
+        if (sequence !== requestSequence) return;
+        if (res.status === 401 || res.status === 403) {
+          authorization = null;
+          $("login").hidden = false;
+          $("signout").hidden = true;
+          $("controls").hidden = true;
+          $("report").hidden = true;
+          $("status").hidden = false;
+          $("status").textContent = "Sign-in failed. Check your username and password.";
+          return;
+        }
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
+        if (sequence !== requestSequence) return;
         const { views, visitors } = data.totals;
         $("visitors").textContent = fmt.format(visitors);
         $("views").textContent = fmt.format(views);
@@ -792,7 +825,12 @@
 
         $("status").hidden = true;
         $("report").hidden = false;
+        $("login").hidden = true;
+        $("signout").hidden = false;
+        $("controls").hidden = false;
       } catch (e) {
+        if (sequence !== requestSequence) return;
+        $("status").hidden = false;
         $("status").textContent = "The stats could not be loaded. Try again later.";
       }
     }
@@ -811,7 +849,20 @@
       try { ignore.checked ? localStorage.setItem("stats-ignore", "1") : localStorage.removeItem("stats-ignore"); } catch (e) {}
     });
 
-    load(30);
+    $("login").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const credentials = `${$("username").value}:${$("password").value}`;
+      authorization = "Basic " + btoa(Array.from(new TextEncoder().encode(credentials), (b) => String.fromCharCode(b)).join(""));
+      $("password").value = "";
+      $("status").hidden = false;
+      $("status").textContent = "Loading…";
+      load(30);
+    });
+    $("signout").addEventListener("click", () => {
+      authorization = null;
+      ++requestSequence;
+      location.reload();
+    });
   </script>
 </body>
 </html>

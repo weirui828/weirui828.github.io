@@ -2375,7 +2375,7 @@
         }
       });
 
-      let startTime = Date.now();
+      let startTime = document.visibilityState === "visible" ? Date.now() : null;
       let maxScroll = 0;
 
       function updateScroll() {
@@ -2384,7 +2384,7 @@
         const top = h.scrollTop || b.scrollTop;
         const total = (h.scrollHeight || b.scrollHeight) - h.clientHeight;
         if (total <= 0) {
-          maxScroll = 100;
+          maxScroll = 0;
         } else {
           const pct = Math.min(100, Math.round((top / total) * 100));
           if (pct > maxScroll) maxScroll = pct;
@@ -2398,7 +2398,7 @@
         if (flushed) return;
         flushed = true;
         updateScroll();
-        const dur = Math.round((Date.now() - startTime) / 1000);
+        const dur = startTime === null ? 0 : Math.round((Date.now() - startTime) / 1000);
         const events = [];
         if (dur >= 3) {
           events.push({ type: "duration", value: Math.min(dur, 1800) });
@@ -2420,6 +2420,7 @@
       window.addEventListener("pagehide", flushSession);
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "hidden") flushSession();
+        else if (startTime === null) startTime = Date.now();
       });
     })();
   </script>
