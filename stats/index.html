@@ -417,6 +417,11 @@
     const API = "https://weiniverse-stats.aug828.workers.dev/stats";
     let authorization = null;
     let requestSequence = 0;
+    // The sign-in stays on this browser until Sign out or a failed sign-in
+    const SIGN_IN_KEY = "stats-sign-in";
+    function forgetSignIn() {
+      try { localStorage.removeItem(SIGN_IN_KEY); } catch (e) {}
+    }
     const WORLD_ATLAS_URL = "vendor/countries-110m.json";
     const fmt = new Intl.NumberFormat("en");
     const countryName = new Intl.DisplayNames(["en"], { type: "region" });
@@ -783,6 +788,7 @@
         if (sequence !== requestSequence) return;
         if (res.status === 401 || res.status === 403) {
           authorization = null;
+          forgetSignIn();
           $("login").hidden = false;
           $("signout").hidden = true;
           $("controls").hidden = true;
@@ -823,6 +829,8 @@
         const totalOutbound = (data.outbounds || []).reduce((s, o) => s + o.views, 0);
         $("total-outbound").textContent = fmt.format(totalOutbound);
 
+        // Remember a sign-in only after it worked
+        try { localStorage.setItem(SIGN_IN_KEY, authorization); } catch (e) {}
         $("status").hidden = true;
         $("report").hidden = false;
         $("login").hidden = true;
@@ -860,9 +868,19 @@
     });
     $("signout").addEventListener("click", () => {
       authorization = null;
+      forgetSignIn();
       ++requestSequence;
       location.reload();
     });
+
+    // A sign-in saved on this browser loads the stats without asking again
+    try { authorization = localStorage.getItem(SIGN_IN_KEY); } catch (e) {}
+    if (authorization) {
+      $("login").hidden = true;
+      $("status").hidden = false;
+      $("status").textContent = "Loading…";
+      load(30);
+    }
   </script>
 </body>
 </html>
