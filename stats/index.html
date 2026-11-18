@@ -282,10 +282,12 @@
     .login { display: grid; gap: 12px; max-width: 340px; margin-top: 20px; }
     .login[hidden], .controls[hidden], #signout[hidden] { display: none; }
     .login label { display: grid; gap: 6px; }
-    .login input, .login button, #signout { font: inherit; padding: 10px; border: 1px solid var(--violet); border-radius: 8px; }
+    .login input, .login button { font: inherit; padding: 10px; border: 1px solid var(--violet); border-radius: 8px; }
     .login input { background: var(--glass); color: var(--text); }
-    .login button, #signout { cursor: pointer; }
-    #signout { margin-top: 16px; }
+    .login button { cursor: pointer; }
+    /* Quiet text link at the very bottom of the page */
+    #signout { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin-top: 8px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    #signout:hover, #signout:focus-visible { color: var(--muted); }
   </style>
 
   <!-- Pinned D3 and TopoJSON libraries with integrity hashes -->
@@ -302,7 +304,6 @@
       <label>Password<input id="password" type="password" autocomplete="current-password" required /></label>
       <button type="submit">Sign in</button>
     </form>
-    <button type="button" id="signout" hidden>Sign out</button>
 
     <div class="controls" id="controls" hidden>
       <div class="tabs" role="tablist" aria-label="Stats views">
@@ -410,6 +411,8 @@
       Days are counted in UTC. A visitor is counted once per day.
       <br />
       <label><input type="checkbox" id="ignore" /> Don't count my visits on this browser</label>
+      <br />
+      <button type="button" id="signout" hidden>Sign out</button>
     </footer>
   </main>
 
