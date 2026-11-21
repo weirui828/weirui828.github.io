@@ -72,10 +72,41 @@
       inset: 0;
       z-index: -2;
       background:
-        radial-gradient(60vw 45vh at 15% 10%, rgba(124, 58, 237, .22), transparent 70%),
-        radial-gradient(50vw 40vh at 90% 25%, rgba(34, 211, 238, .12), transparent 70%),
-        radial-gradient(70vw 50vh at 50% 110%, rgba(251, 191, 36, .08), transparent 70%),
+        radial-gradient(70vw 50vh at 50% 110%, rgba(251, 191, 36, .06), transparent 70%),
         var(--bg);
+    }
+    .nebula i {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity .9s ease;
+      pointer-events: none;
+    }
+    .nebula i[data-s="tab-building"] {
+      background:
+        radial-gradient(64vw 50vh at 20% 14%, rgba(139, 92, 246, .26), transparent 70%),
+        radial-gradient(50vw 42vh at 82% 28%, rgba(167, 139, 250, .14), transparent 72%);
+    }
+    .nebula i[data-s="tab-writing"] {
+      background:
+        radial-gradient(64vw 50vh at 24% 16%, rgba(244, 63, 94, .24), transparent 70%),
+        radial-gradient(52vw 44vh at 80% 30%, rgba(251, 113, 133, .14), transparent 72%);
+    }
+    .nebula i[data-s="tab-capturing"] {
+      background:
+        radial-gradient(64vw 50vh at 22% 16%, rgba(16, 185, 129, .24), transparent 70%),
+        radial-gradient(52vw 44vh at 82% 30%, rgba(52, 211, 153, .14), transparent 72%);
+    }
+    .nebula i[data-s="tab-wandering"] {
+      background:
+        radial-gradient(64vw 50vh at 22% 16%, rgba(6, 182, 212, .25), transparent 70%),
+        radial-gradient(52vw 44vh at 82% 30%, rgba(34, 211, 238, .15), transparent 72%);
+    }
+    .nebula[data-sector="tab-building"] i[data-s="tab-building"],
+    .nebula[data-sector="tab-writing"] i[data-s="tab-writing"],
+    .nebula[data-sector="tab-capturing"] i[data-s="tab-capturing"],
+    .nebula[data-sector="tab-wandering"] i[data-s="tab-wandering"] {
+      opacity: 1;
     }
 
     /* ---------- Layout: profile sidebar + content panel ---------- */
@@ -1283,7 +1314,12 @@
   </style>
 </head>
 <body>
-  <div class="nebula" aria-hidden="true"></div>
+  <div class="nebula" data-sector="tab-building" aria-hidden="true">
+    <i data-s="tab-building"></i>
+    <i data-s="tab-writing"></i>
+    <i data-s="tab-capturing"></i>
+    <i data-s="tab-wandering"></i>
+  </div>
   <canvas id="stars" aria-hidden="true"></canvas>
 
   <div class="layout">
@@ -1820,7 +1856,7 @@
       const canvas = document.getElementById("stars");
       const ctx = canvas.getContext("2d");
       const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      let w, h, dpr, stars = [], shooting = null, mx = 0, my = 0;
+      let w, h, dpr, stars = [], shooting = null, mx = 0, my = 0, slewVx = 0, slewVy = 0;
 
       function resize() {
         dpr = Math.min(devicePixelRatio || 1, 2);
@@ -1838,14 +1874,30 @@
 
       function draw(t) {
         ctx.clearRect(0, 0, w, h);
+        slewVx *= 0.93;
+        slewVy *= 0.93;
+        const slewMag = Math.hypot(slewVx, slewVy);
         for (const s of stars) {
           if (!still) {
-            s.y += s.z * 0.06 * dpr;
-            if (s.y > h) s.y = 0;
+            s.x += slewVx * s.z;
+            s.y += s.z * 0.06 * dpr + slewVy * s.z;
+            if (s.x < 0) s.x += w;
+            if (s.x > w) s.x -= w;
+            if (s.y < 0) s.y += h;
+            if (s.y > h) s.y -= h;
           }
           const twinkle = still ? 1 : 0.6 + 0.4 * Math.sin(t / 900 + s.phase);
           const px = s.x + mx * s.z * 14 * dpr;
           const py = s.y + my * s.z * 14 * dpr;
+          if (!still && slewMag > 0.6 * dpr) {
+            ctx.globalAlpha = Math.min(0.68, s.z * twinkle * (slewMag / (22 * dpr)));
+            ctx.strokeStyle = s.hue ? `hsl(${s.hue} 90% 82%)` : "#fff";
+            ctx.lineWidth = s.z * 1.15 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px - slewVx * s.z * 2.2, py - slewVy * s.z * 2.2);
+            ctx.stroke();
+          }
           ctx.globalAlpha = s.z * twinkle;
           ctx.fillStyle = s.hue ? `hsl(${s.hue} 90% 80%)` : "#fff";
           ctx.beginPath();
@@ -1883,6 +1935,12 @@
       addEventListener("pointermove", e => {
         mx = e.clientX / innerWidth - 0.5;
         my = e.clientY / innerHeight - 0.5;
+      });
+      addEventListener("weiniverse:slew", e => {
+        if (still) return;
+        const { dx = 0, dy = 0 } = e.detail || {};
+        slewVx += -dx * 42 * dpr;
+        slewVy += -dy * 42 * dpr;
       });
       resize();
       requestAnimationFrame(draw);
@@ -3056,7 +3114,25 @@
       nav.style.setProperty("--reach", `${cx(tab) - first}px`);
     }
 
+    const nebula = document.querySelector(".nebula");
+
     function selectTab(tab, { focus = false, updateHash = true, from = null, flash = true } = {}) {
+      const prevIdx = tabs.findIndex(t => t.getAttribute("aria-selected") === "true");
+      const nextIdx = tabs.indexOf(tab);
+      if (flash && prevIdx !== -1 && prevIdx !== nextIdx) {
+        let dx, dy;
+        if (from === "right") { dx = 1; dy = 0; }
+        else if (from === "left") { dx = -1; dy = 0; }
+        else {
+          const rx = DIPPER[nextIdx][0] - DIPPER[prevIdx][0];
+          const ry = DIPPER[nextIdx][1] - DIPPER[prevIdx][1];
+          const len = Math.hypot(rx, ry) || 1;
+          dx = rx / len;
+          dy = ry / len;
+        }
+        dispatchEvent(new CustomEvent("weiniverse:slew", { detail: { dx, dy } }));
+      }
+      if (nebula) nebula.dataset.sector = tab.id;
       tabs.forEach((t, i) => {
         const on = t === tab;
         t.setAttribute("aria-selected", on);
