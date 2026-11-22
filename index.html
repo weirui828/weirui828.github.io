@@ -900,6 +900,115 @@
       .post-more { margin: 8px 18px 16px; }
     }
 
+    /* Writing: a small gradient descent demo that sits next to the step size post */
+    .gd { padding: 24px 24px 20px; }
+    .gd h3 {
+      margin-top: 8px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.1875rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .gd-lede { margin-top: 8px; font-size: 0.9375rem; line-height: 1.6; color: var(--muted); }
+    .gd canvas {
+      display: block;
+      width: 100%;
+      height: 300px;
+      margin-top: 14px;
+      border-radius: 12px;
+      background: radial-gradient(120% 90% at 50% 100%, rgba(244, 114, 182, .08), transparent 70%);
+      cursor: grab;
+      touch-action: pan-y;               /* sideways drags turn the surface, vertical swipes still scroll */
+    }
+    .gd-controls {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      margin-top: 14px;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .gd-controls label { font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.75rem; }
+    .gd-controls output {
+      min-width: 3.2em;
+      font: 600 0.9375rem "Space Grotesk", sans-serif;
+      color: var(--text);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .gd input[type="range"] {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #34d399 0 45%, #fbbf24 45% 91%, #f472b6 91%);
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+    }
+    .gd input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(244, 114, 182, .35), 0 0 16px rgba(244, 114, 182, .7);
+    }
+    .gd input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(244, 114, 182, .35), 0 0 16px rgba(244, 114, 182, .7);
+    }
+    .gd input[type="range"]:focus-visible { outline: 2px solid var(--rose); outline-offset: 6px; }
+    .gd-modes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .gd-modes button {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .02);
+      color: var(--muted);
+      font: 600 0.8125rem "Space Grotesk", sans-serif;
+      line-height: 1.3;
+      text-align: left;
+      cursor: pointer;
+      transition: color .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .gd-modes small {
+      display: block;
+      margin-top: 2px;
+      font: 500 0.6875rem "Inter", sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .gd-modes button:hover { color: var(--text); border-color: rgba(244, 114, 182, .35); }
+    .gd-modes button[aria-pressed="true"] {
+      color: var(--text);
+      border-color: rgba(244, 114, 182, .6);
+      background: rgba(244, 114, 182, .1);
+      box-shadow: 0 0 18px -6px rgba(244, 114, 182, .7);
+    }
+    .gd-modes button[aria-pressed="true"] small { color: var(--rose); }
+    .gd-modes button:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+    /* The green, gold and rose zones only fit plain gradient descent */
+    .gd:not([data-mode="gd"]) input[type="range"] { background: linear-gradient(90deg, #a78bfa, #f472b6); }
+    .gd-status { margin-top: 12px; min-height: 1.6em; font-size: 0.875rem; color: var(--text); }
+    .gd-status b { font-weight: 600; }
+    .gd .post-read { margin-top: 10px; }
+    .gd .post-read:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+      .gd { padding: 20px 18px 18px; }
+      .gd canvas { height: 240px; }
+    }
+
     /* Photography */
     /* Justified gallery: rows wrap and fill the width; photos in a row share a height and keep their
        own aspect ratio (--ar), because both the base width and the growth are proportional to --ar */
@@ -1946,6 +2055,306 @@
       requestAnimationFrame(draw);
     })();
 
+    // ---------- Gradient descent demo: a ball steps down a 3D loss surface ----------
+    // The surface is a long valley turned at an angle to the two parameters x and y:
+    // in the valley's own directions it is f = 0.25u² + v², gentle along u, steep across v.
+    // Every method takes a step downhill, p ← p − (step size)·∇f. Only the step size changes, as in the post:
+    //   one number (gradient descent): the steep direction decides. Below η = 0.5 the ball walks down, between
+    //     0.5 and 1 it zigzags but settles, at 1 it bounces forever, above 1 it flies off.
+    //   one number per parameter (RMSprop): each parameter's step is divided by the size of its recent slopes.
+    //   a full matrix (Newton): the step is η·H⁻¹∇f, which here is η·p, so it heads straight at the bottom.
+    function gradientDemo(postHref) {
+      const card = document.createElement("article");
+      card.className = "glass gd";
+      card.innerHTML = `
+        <p class="post-kicker">Try it</p>
+        <h3>Gradient descent: pick a step size</h3>
+        <p class="gd-lede">This loss surface is a long valley, steep across and gentle along, and turned at an angle to the
+          two parameters. Each method below takes the same step downhill. What changes is the step size.
+          Drag the surface to turn it, or click it to drop the ball somewhere new.</p>
+        <div class="gd-modes" role="group" aria-label="Step size">
+          <button type="button" data-mode="gd" aria-pressed="true">One number<small>Gradient descent</small></button>
+          <button type="button" data-mode="rms" aria-pressed="false">One per parameter<small>RMSprop</small></button>
+          <button type="button" data-mode="newton" aria-pressed="false">A full matrix<small>Newton</small></button>
+        </div>
+        <canvas role="img" aria-label="A ball stepping down a valley-shaped 3D loss surface"></canvas>
+        <div class="gd-controls">
+          <label for="gd-rate">Step size</label>
+          <input id="gd-rate" type="range" min="0.02" max="1.1" step="0.01" value="0.85">
+          <output for="gd-rate"></output>
+        </div>
+        <p class="gd-status" aria-live="polite"></p>
+        <a class="post-read" target="_blank" rel="noopener">Read the post on step size →</a>`;
+      card.querySelector(".post-read").href = postHref;
+      const canvas = card.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      const slider = card.querySelector("input");
+      const out = card.querySelector("output");
+      const status = card.querySelector(".gd-status");
+      const modeButtons = [...card.querySelectorAll(".gd-modes button")];
+      const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const TILT = 0.65, TC = Math.cos(TILT), TS = Math.sin(TILT);
+      const toValley = (x, y) => [TC * x + TS * y, -TS * x + TC * y];       // (x, y) to (u, v)
+      const fromValley = (u, v) => [TC * u - TS * v, TS * u + TC * v];
+      const f = (x, y) => { const [u, v] = toValley(x, y); return 0.25 * u * u + v * v; };
+      const grad = (x, y) => {
+        const [u, v] = toValley(x, y);
+        return fromValley(0.5 * u, 2 * v);
+      };
+      const G = 3.9, N = 34;                   // the drawn grid: x and y in ±G, N cells each way
+      const CAP = 3.0;                         // grid lines stop at this height, so the rim is an oval
+      const ZS = 0.42;                         // height scale, so the bowl isn't a tower
+      const STEP_MS = 520, HOLD_MS = 1600, MAX_STEPS = 40, RMS_STEPS = 30;
+      let w = 0, h = 0, dpr = 1, unit = 1;
+      let yaw = -TILT - 0.3, pitch = 0.5;      // camera angles: start looking across the valley; yaw drifts slowly
+      let mode = "gd";
+      let rate = +slider.value;
+      let start = fromValley(-2.6, 1.05);
+      let path = [];
+      let t0 = 0, done = 0, last = 0, running = false, visible = false;
+
+      // Project a point on or above the surface to the canvas, with a little perspective
+      function proj(x, y, z) {
+        const c = Math.cos(yaw), s = Math.sin(yaw);
+        const X = x * c - y * s, Y = x * s + y * c, Z = z * ZS;
+        const cp = Math.cos(pitch), sp = Math.sin(pitch);
+        const depth = Y * cp - Z * sp;
+        const k = 9 / (9 + depth);
+        return [w / 2 + X * k * unit, h * 0.84 + (Y * sp - Z * cp) * k * unit, depth];
+      }
+
+      function describe() {
+        out.value = rate.toFixed(2);
+        const r = Math.round(rate * 100);
+        card.dataset.mode = mode;
+        status.innerHTML = mode === "gd" ? (
+          r < 50 ? "<b>Small steps.</b> The ball walks down the steep side, then slowly along the valley floor. Smaller is safer, but slower." :
+          r === 50 ? "<b>Just right for the steep direction.</b> One step reaches the valley floor, then the ball walks along it." :
+          r < 100 ? "<b>Too big for the steep direction.</b> The ball zigzags across the valley, but the zigzags shrink and it still settles." :
+          r === 100 ? "<b>Twice too big.</b> The ball bounces between the two walls forever, while it slides along the valley." :
+          "<b>Much too big.</b> Each jump across the valley lands higher than the last, and the ball flies off."
+        ) : mode === "rms" ? (
+          "<b>One step size per parameter.</b> Each parameter's step is divided by the size of its recent slopes, so a steep slope no longer means a huge jump. " +
+          (r > 100 ? "This is past the point where one number flies off, and the ball still gets down. " : "") +
+          "The valley is at an angle to both parameters, so near the bottom the ball keeps moving around a little."
+        ) : (
+          r < 100 ? "<b>A full matrix.</b> Newton's method uses the curvature in every direction, including the angle of the valley, so the ball heads straight for the bottom. At 1.00 it gets there in one step." :
+          r === 100 ? "<b>A full matrix, at 1.00.</b> For a bowl like this one, Newton's method reaches the bottom in one step." :
+          "<b>A full matrix, a bit too big.</b> The ball still points straight at the bottom, but each step goes past it and comes back along the same line."
+        );
+      }
+
+      function plan() {
+        let [x, y] = start;
+        path = [[x, y]];
+        let sx = 0, sy = 0;                    // RMSprop's running average of squared slopes
+        const steps = mode === "rms" ? RMS_STEPS : MAX_STEPS;
+        for (let t = 1; t <= steps; t++) {
+          const [gx, gy] = grad(x, y);
+          if (mode === "gd") {
+            x -= rate * gx;
+            y -= rate * gy;
+          } else if (mode === "rms") {
+            sx = 0.9 * sx + 0.1 * gx * gx;
+            sy = 0.9 * sy + 0.1 * gy * gy;
+            const fix = 1 - 0.9 ** t;          // the average starts at zero, so scale it back up early on
+            const eta = rate * 0.45;
+            x -= eta * gx / (Math.sqrt(sx / fix) + 1e-8);
+            y -= eta * gy / (Math.sqrt(sy / fix) + 1e-8);
+          } else {
+            x -= rate * x;                     // H⁻¹∇f is the point itself for this bowl
+            y -= rate * y;
+          }
+          path.push([x, y]);
+          if (Math.hypot(x, y) < 0.01 || Math.hypot(x, y) > 6) break;
+        }
+        t0 = performance.now();
+        done = 0;
+      }
+
+      function resize() {
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        w = canvas.clientWidth;
+        h = canvas.clientHeight;
+        unit = Math.min(w / (w < 500 ? 7.6 : 10), h / 4.4);   // phones get a bigger bowl; the sides may clip as it turns
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      const zMax = CAP;
+      function drawSurface() {
+        // Grid lines along x and along y, colored violet at the bottom to rose at the rim, faded with distance
+        ctx.lineWidth = 1;
+        for (let dir = 0; dir < 2; dir++) {
+          for (let i = 0; i <= N; i++) {
+            let prev = null;
+            for (let j = 0; j <= N; j++) {
+              const u = -1 + 2 * i / N, v = -1 + 2 * j / N;
+              const x = (dir ? v : u) * G, y = (dir ? u : v) * G, z = f(x, y);
+              const p = proj(x, y, z);
+              p.push(z);
+              if (prev && Math.max(z, prev[3]) <= CAP) {
+                const t = Math.min(1, z / zMax);
+                const fade = Math.max(0.25, Math.min(1, 0.75 - p[2] * 0.12));
+                const r = 167 + (244 - 167) * t, g = 139 + (114 - 139) * t, b = 250 + (182 - 250) * t;
+                const axis = i === N / 2 ? 2.2 : 1;   // the lines x = 0 and y = 0 stand out, to show the two parameters
+                ctx.strokeStyle = `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${Math.min(1, (0.24 + 0.36 * (1 - t)) * fade * axis)})`;
+                ctx.beginPath();
+                ctx.moveTo(prev[0], prev[1]);
+                ctx.lineTo(p[0], p[1]);
+                ctx.stroke();
+              }
+              prev = p;
+            }
+          }
+        }
+        // The lowest point, as a small cross
+        const [mx, my] = proj(0, 0, 0);
+        ctx.strokeStyle = "rgba(255, 255, 255, .4)";
+        ctx.beginPath();
+        ctx.moveTo(mx - 4, my); ctx.lineTo(mx + 4, my);
+        ctx.moveTo(mx, my - 4); ctx.lineTo(mx, my + 4);
+        ctx.stroke();
+      }
+
+      function draw(now) {
+        if (!w) return;
+        ctx.clearRect(0, 0, w, h);
+        drawSurface();
+
+        // Where the ball is now: k whole steps, then part of the next one
+        const steps = path.length - 1;
+        let k = steps, u = 0;
+        if (!still) {
+          const s = Math.max(0, (now - t0) / STEP_MS);   // a frame's time can be a little before t0
+          k = Math.min(Math.floor(s), steps);
+          u = k < steps ? s - k : 0;
+          u = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;   // ease in and out
+        }
+        done = k;
+
+        // The trail: straight jumps between past steps, through the air above the valley
+        for (let i = 0; i < k; i++) {
+          const [ax, ay] = path[i], [bx, by] = path[i + 1];
+          const alpha = 0.25 + 0.65 * (i + 1) / Math.max(k, 1);
+          const a = proj(ax, ay, f(ax, ay)), b = proj(bx, by, f(bx, by));
+          ctx.strokeStyle = `rgba(251, 191, 36, ${alpha * 0.75})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(a[0], a[1]);
+          ctx.lineTo(b[0], b[1]);
+          ctx.stroke();
+          ctx.fillStyle = `rgba(251, 191, 36, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(a[0], a[1], 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const [ax, ay] = path[k], [bx, by] = path[Math.min(k + 1, steps)];
+        const za = f(ax, ay), zb = f(bx, by);
+        const x = ax + (bx - ax) * u, y = ay + (by - ay) * u, z = za + (zb - za) * u;
+
+        // The ball's shadow straight below it on the surface, then the ball
+        const sh = proj(x, y, f(x, y));
+        ctx.fillStyle = "rgba(0, 0, 0, .35)";
+        ctx.beginPath();
+        ctx.ellipse(sh[0], sh[1], 7, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const [cx, cy] = proj(x, y, z);
+        const ballY = cy - 6;
+        const glow = ctx.createRadialGradient(cx, ballY, 0, cx, ballY, 24);
+        glow.addColorStop(0, "rgba(255, 255, 255, .6)");
+        glow.addColorStop(1, "rgba(244, 114, 182, 0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(cx, ballY, 24, 0, Math.PI * 2);
+        ctx.fill();
+        const shade = ctx.createRadialGradient(cx - 2, ballY - 2, 1, cx, ballY, 7);
+        shade.addColorStop(0, "#fff");
+        shade.addColorStop(1, "#f9a8d4");
+        ctx.fillStyle = shade;
+        ctx.beginPath();
+        ctx.arc(cx, ballY, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Step count and loss, top left
+        ctx.font = '600 12px "Inter", sans-serif';
+        ctx.fillStyle = "#9ba1c5";
+        ctx.fillText(`step ${k}`, 14, 22);
+        ctx.fillText(`loss ${za > 999 ? za.toExponential(1) : za.toFixed(za < 0.01 ? 4 : 3)}`, 14, 40);
+      }
+
+      let dragging = null;
+      function frame(now) {
+        if (!running) return;
+        if (!dragging && last) yaw += (now - last) * 0.00007;   // a slow turn on its own
+        last = now;
+        draw(now);
+        // After the last step, hold for a moment, then drop the ball again from the same place
+        if (done >= path.length - 1 && now - t0 > (path.length - 1) * STEP_MS + HOLD_MS) plan();
+        requestAnimationFrame(frame);
+      }
+      function play() {
+        const want = visible && !document.hidden && !still;
+        if (want && !running) {
+          running = true;
+          last = 0;
+          t0 = performance.now() - done * STEP_MS;   // carry on from where it paused
+          requestAnimationFrame(frame);
+        } else if (!want) running = false;
+      }
+      function restart() {
+        plan();
+        if (still) draw(0);
+      }
+
+      modeButtons.forEach(btn => btn.addEventListener("click", () => {
+        mode = btn.dataset.mode;
+        modeButtons.forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+        describe();
+        restart();
+      }));
+      slider.addEventListener("input", () => {
+        rate = +slider.value;
+        describe();
+        restart();
+      });
+      // Drag to turn the surface (sideways turns it, up and down tilts it); a click without a drag drops a new ball
+      canvas.addEventListener("pointerdown", e => {
+        dragging = { x: e.clientX, y: e.clientY, moved: 0 };
+        canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener("pointermove", e => {
+        if (!dragging) return;
+        const dx = e.clientX - dragging.x, dy = e.clientY - dragging.y;
+        dragging.x = e.clientX;
+        dragging.y = e.clientY;
+        dragging.moved += Math.abs(dx) + Math.abs(dy);
+        yaw += dx * 0.01;
+        pitch = Math.max(0.2, Math.min(1.35, pitch + dy * 0.006));
+        if (still) draw(0);
+      });
+      const release = () => {
+        if (dragging && dragging.moved < 5) {
+          const side = () => (Math.random() < 0.5 ? -1 : 1);
+          start = fromValley(side() * (1.5 + Math.random() * 1.1), side() * (0.7 + Math.random() * 0.35));
+          restart();
+        }
+        dragging = null;
+      };
+      canvas.addEventListener("pointerup", release);
+      canvas.addEventListener("pointercancel", () => { dragging = null; });
+      new ResizeObserver(() => { resize(); draw(performance.now()); }).observe(canvas);
+      new IntersectionObserver(([e]) => { visible = e.isIntersecting; play(); }).observe(canvas);
+      document.addEventListener("visibilitychange", play);
+
+      describe();
+      plan();
+      return card;
+    }
+
     // ---------- Latest Medium posts, refreshed daily by .github/workflows/update-posts.yml ----------
     (async () => {
       const list = document.getElementById("posts");
@@ -2049,6 +2458,9 @@
         });
         document.addEventListener("visibilitychange", () => document.hidden && fold(openCard()));
         list.replaceChildren(feature, ...cards);
+        // The gradient descent demo goes right above the step size post
+        const gdAt = older.findIndex(p => /gradient descent/i.test(p.title));
+        if (gdAt >= 0) cards[gdAt].before(gradientDemo(safe(older[gdAt].link)));
       } catch {
         list.innerHTML = '<p class="empty">Read my posts on <a href="https://medium.com/@wei.rui828">Medium</a>.</p>';
       }
