@@ -23,6 +23,16 @@
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
   <link rel="stylesheet" href="assets/fonts/fonts.css" />
+  <script>
+    // First visit in a session: hide the page while the warp intro plays. The starfield script removes this
+    // class when the intro ends; the timer is a fallback in case that script never runs.
+    try {
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !sessionStorage.getItem("weiniverse:intro")) {
+        document.documentElement.classList.add("intro");
+        setTimeout(() => document.documentElement.classList.remove("intro"), 7000);
+      }
+    } catch {}
+  </script>
 
   <style>
     :root {
@@ -110,7 +120,10 @@
     }
 
     /* ---------- Layout: profile sidebar + content panel ---------- */
+    /* The warp intro hides the page until the name has formed out of stars and moved into the card */
+    html.intro .layout { opacity: 0; pointer-events: none; }
     .layout {
+      transition: opacity .9s ease;
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 24px;
@@ -1852,11 +1865,17 @@
 
   <script>
     // ---------- Starfield: slow drift, twinkle, the odd shooting star ----------
+    // On top of the drift: a warp jump (stars stream out from the middle as streaks) on the first visit and on
+    // every tab switch, and gravity under the mouse: stars bend away from it, and from a fading wake along its path.
     (() => {
       const canvas = document.getElementById("stars");
       const ctx = canvas.getContext("2d");
       const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
       let w, h, dpr, stars = [], shooting = null, mx = 0, my = 0, slewVx = 0, slewVy = 0;
+      let warp = 0, warpPlan = null;           // warp 0..1; the plan says how it rises, holds and falls
+      const wake = [];                         // fading masses left along the mouse's path
+      const mass = { x: -1e9, y: -1e9, on: false, k: 0 };
+      let name = null;                         // the intro's name made of stars, while it plays
 
       function resize() {
         dpr = Math.min(devicePixelRatio || 1, 2);
@@ -1869,16 +1888,82 @@
           z: Math.random() * 0.8 + 0.2,          // depth: nearer stars are bigger and move more
           phase: Math.random() * Math.PI * 2,
           hue: Math.random() < 0.15 ? (Math.random() < 0.5 ? 265 : 190) : 0,
+          wx: 0, wy: 0,                          // this frame's warp motion, for the streak
         }));
       }
 
+      function startWarp({ peak = 1, up = 200, hold = 300, down = 700 } = {}) {
+        if (still) return;
+        warpPlan = { t0: performance.now(), peak, up, hold, down };
+      }
+      function warpAt(t) {
+        if (!warpPlan) return 0;
+        const { t0, peak, up, hold, down } = warpPlan, e = t - t0;
+        if (e < 0) return 0;
+        if (e < up) return peak * (e / up) ** 2;
+        if (e < up + hold) return peak;
+        if (e < up + hold + down) return peak * (1 - (e - up - hold) / down) ** 2;
+        warpPlan = null;
+        return 0;
+      }
+
+      // Light bends around a mass, so a star seen near it appears pushed outward; the stars bunch up into a
+      // faint bright ring at the Einstein radius θ. Apparent distance r' = (r + √(r² + 4θ²)) / 2.
+      // Nothing is drawn for the mass itself: you only see it through the stars it bends.
+      function lens(x, y, mx, my, k) {
+        const dx = x - mx, dy = y - my, r = Math.hypot(dx, dy) || 0.001;
+        if (r > 240 * dpr) return [x, y, 1];
+        const th = 30 * dpr * k;
+        const r2 = (r + Math.sqrt(r * r + 4 * th * th)) / 2;
+        return [mx + dx * r2 / r, my + dy * r2 / r, 1 + 1.3 * k * Math.exp(-(((r2 - th) / dpr) ** 2) / 220)];
+      }
+      function bend(x, y) {
+        let boost = 1, b;
+        // the wake: older points are lighter, so the bending fades out behind the mouse
+        for (const m of wake) {
+          if (m.k < 0.02) continue;
+          [x, y, b] = lens(x, y, m.x, m.y, m.k);
+          boost = Math.max(boost, b);
+        }
+        if (mass.k > 0.01) {
+          [x, y, b] = lens(x, y, mass.x, mass.y, mass.k);
+          boost = Math.max(boost, b);
+        }
+        return [x, y, boost];
+      }
+
+      let lastT = 0;
       function draw(t) {
+        const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0.016;
+        lastT = t;
         ctx.clearRect(0, 0, w, h);
         slewVx *= 0.93;
         slewVy *= 0.93;
         const slewMag = Math.hypot(slewVx, slewVy);
+        warp = still ? 0 : warpAt(t);
+        mass.k += ((mass.on ? 1 : 0) - mass.k) * Math.min(1, dt * 4);
+        for (let i = wake.length - 1; i >= 0; i--) {
+          const m = wake[i];
+          const age = Math.max(0, t - m.t0) / 750;   // a frame's time can be a little before the point was made
+          m.k = 0.7 * mass.k * (1 - Math.min(1, age)) ** 2;
+          if (age >= 1) wake.splice(i, 1);
+        }
+        const cx = w / 2, cy = h / 2;
         for (const s of stars) {
           if (!still) {
+            s.wx = s.wy = 0;
+            if (warp > 0.001) {
+              // stream out from the middle, faster for nearer stars; replace any that leave the screen
+              s.wx = (s.x - cx) * warp * 0.075 * s.z;
+              s.wy = (s.y - cy) * warp * 0.075 * s.z;
+              s.x += s.wx;
+              s.y += s.wy;
+              if (s.x < 0 || s.x > w || s.y < 0 || s.y > h) {
+                s.x = Math.random() * w;
+                s.y = Math.random() * h;
+                s.wx = s.wy = 0;
+              }
+            }
             s.x += slewVx * s.z;
             s.y += s.z * 0.06 * dpr + slewVy * s.z;
             if (s.x < 0) s.x += w;
@@ -1887,18 +1972,18 @@
             if (s.y > h) s.y -= h;
           }
           const twinkle = still ? 1 : 0.6 + 0.4 * Math.sin(t / 900 + s.phase);
-          const px = s.x + mx * s.z * 14 * dpr;
-          const py = s.y + my * s.z * 14 * dpr;
-          if (!still && slewMag > 0.6 * dpr) {
-            ctx.globalAlpha = Math.min(0.68, s.z * twinkle * (slewMag / (22 * dpr)));
+          const [px, py, boost] = bend(s.x + mx * s.z * 14 * dpr, s.y + my * s.z * 14 * dpr);
+          if (!still && (slewMag > 0.6 * dpr || warp > 0.02)) {
+            const tx = slewVx * s.z * 2.2 + s.wx * 3.2, ty = slewVy * s.z * 2.2 + s.wy * 3.2;
+            ctx.globalAlpha = Math.min(0.85, s.z * twinkle * (slewMag / (22 * dpr) + warp * 1.4));
             ctx.strokeStyle = s.hue ? `hsl(${s.hue} 90% 82%)` : "#fff";
             ctx.lineWidth = s.z * 1.15 * dpr;
             ctx.beginPath();
             ctx.moveTo(px, py);
-            ctx.lineTo(px - slewVx * s.z * 2.2, py - slewVy * s.z * 2.2);
+            ctx.lineTo(px - tx, py - ty);
             ctx.stroke();
           }
-          ctx.globalAlpha = s.z * twinkle;
+          ctx.globalAlpha = Math.min(1, s.z * twinkle * boost);
           ctx.fillStyle = s.hue ? `hsl(${s.hue} 90% 80%)` : "#fff";
           ctx.beginPath();
           ctx.arc(px, py, s.z * 1.3 * dpr, 0, Math.PI * 2);
@@ -1926,24 +2011,131 @@
             shooting.y += 5.6 * dpr;
             if (++shooting.life > 40) shooting = null;
           }
+          drawName(t);
         }
         ctx.globalAlpha = 1;
         if (!still) requestAnimationFrame(draw);
+      }
+
+      // ---------- Intro: warp in, the name forms out of stars in the middle, then flies into the profile card ----------
+      const root = document.documentElement;
+      function sampleText(text, font, x, y, gap) {
+        const off = document.createElement("canvas");
+        off.width = w;
+        off.height = h;
+        const o = off.getContext("2d");
+        o.font = font;
+        o.textAlign = "center";
+        o.textBaseline = "middle";
+        o.fillStyle = "#fff";
+        o.fillText(text, x, y);
+        const data = o.getImageData(0, 0, w, h).data, pts = [];
+        for (let py = 0; py < h; py += gap) for (let px = 0; px < w; px += gap) {
+          if (data[(py * w + px) * 4 + 3] > 140) pts.push([px, py]);
+        }
+        return pts;
+      }
+      async function intro() {
+        try { sessionStorage.setItem("weiniverse:intro", "1"); } catch {}
+        startWarp({ peak: 1, up: 10, hold: 700, down: 1300 });
+        await document.fonts.ready;
+        for (let i = 0; i < 100 && innerWidth < 50; i++) await new Promise(r => setTimeout(r, 50));
+        if (!root.classList.contains("intro")) return;           // skipped while waiting
+        if (canvas.width !== Math.round(innerWidth * dpr)) resize();
+        const h1 = document.querySelector(".profile-card h1");
+        const cs = getComputedStyle(h1), r = h1.getBoundingClientRect();
+        const bigPx = Math.min(innerWidth * 0.14, 150) * dpr;
+        const big = sampleText(h1.textContent, `700 ${bigPx}px "Space Grotesk", sans-serif`, w / 2, h * 0.45,
+                               Math.round((innerWidth < 600 ? 2.5 : 3) * dpr));
+        const small = sampleText(h1.textContent, `${cs.fontWeight} ${parseFloat(cs.fontSize) * dpr}px ${cs.fontFamily}`,
+                                 (r.left + r.width / 2) * dpr, (r.top + r.height / 2) * dpr, Math.max(1, Math.round(dpr)));
+        if (!big.length || !small.length) return endIntro();
+        name = {
+          t0: performance.now() + 900,
+          parts: big.map(([bx, by], i) => {
+            const a = Math.random() * Math.PI * 2, rad = Math.max(w, h) * (0.45 + Math.random() * 0.5);
+            const [sx, sy] = small[Math.floor(i / big.length * small.length)];
+            return { ox: w / 2 + Math.cos(a) * rad, oy: h / 2 + Math.sin(a) * rad, bx, by, sx, sy,
+                     d1: Math.random() * 500, d2: Math.random() * 250, tw: Math.random() * 6.3 };
+          }),
+        };
+      }
+      // Gather into the big name over 1.3 s, hold, then fly into the card while the page fades in
+      const GATHER = 1300, HOLD = 2700, FLY = 900;
+      function drawName(t) {
+        if (!name) return;
+        const e = t - name.t0;
+        if (e < 0) return;
+        if (e > HOLD + 500 && root.classList.contains("intro")) endIntro(true);
+        const fade = Math.max(0, 1 - (e - HOLD - FLY) / 500);
+        if (fade <= 0) { name = null; return; }
+        // a soft violet glow behind the formed name, then the stars themselves
+        const glowA = Math.min(1, Math.max(0, (e - 900) / 700)) * Math.max(0, 1 - (e - HOLD) / 500);
+        if (glowA > 0) {
+          const g = ctx.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.min(w, h) * 0.45);
+          g.addColorStop(0, "rgba(167, 139, 250, .22)");
+          g.addColorStop(1, "rgba(167, 139, 250, 0)");
+          ctx.globalAlpha = glowA;
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, w, h);
+        }
+        ctx.fillStyle = "#f5f3ff";
+        const size = 2.8 * dpr;
+        for (const p of name.parts) {
+          let x, y, a;
+          if (e < HOLD) {
+            let u = Math.min(1, Math.max(0, (e - p.d1) / GATHER));
+            u = 1 - (1 - u) ** 3;
+            x = p.ox + (p.bx - p.ox) * u;
+            y = p.oy + (p.by - p.oy) * u;
+            a = 0.5 + 0.5 * u;
+          } else {
+            let u = Math.min(1, Math.max(0, (e - HOLD - p.d2) / (FLY - 250)));
+            u = u < 0.5 ? 4 * u ** 3 : 1 - (-2 * u + 2) ** 3 / 2;
+            x = p.bx + (p.sx - p.bx) * u;
+            y = p.by + (p.sy - p.by) * u;
+            a = 1;
+          }
+          ctx.globalAlpha = a * fade * (0.8 + 0.2 * Math.sin(p.tw + e / 180));
+          ctx.fillRect(x - size / 2, y - size / 2, size, size);
+        }
+      }
+      function endIntro(keepName = false) {
+        if (!keepName) { name = null; warpPlan = null; }
+        root.classList.remove("intro");
       }
 
       addEventListener("resize", () => { resize(); if (still) draw(0); });
       addEventListener("pointermove", e => {
         mx = e.clientX / innerWidth - 0.5;
         my = e.clientY / innerHeight - 0.5;
+        mass.x = e.clientX * dpr;
+        mass.y = e.clientY * dpr;
+        mass.on = e.pointerType === "mouse";
+        // The mouse leaves a wake of fading masses behind it, one per 16 px of travel
+        if (!mass.on || still || root.classList.contains("intro")) return;
+        if (Math.hypot(e.clientX - trail.x, e.clientY - trail.y) > 16) {
+          trail.x = e.clientX;
+          trail.y = e.clientY;
+          wake.push({ x: mass.x, y: mass.y, t0: performance.now(), k: 0 });
+          if (wake.length > 30) wake.shift();
+        }
       });
+      const trail = { x: -1e4, y: -1e4 };
+      document.addEventListener("pointerleave", () => { mass.on = false; });
+      // Any click or key skips the intro
+      addEventListener("pointerdown", () => { if (root.classList.contains("intro")) endIntro(); });
+      addEventListener("keydown", () => { if (root.classList.contains("intro")) endIntro(); });
       addEventListener("weiniverse:slew", e => {
         if (still) return;
         const { dx = 0, dy = 0 } = e.detail || {};
         slewVx += -dx * 42 * dpr;
         slewVy += -dy * 42 * dpr;
+        startWarp({ peak: 0.75, up: 180, hold: 220, down: 650 });   // and a short jump to the new section
       });
       resize();
       requestAnimationFrame(draw);
+      if (root.classList.contains("intro")) intro();
     })();
 
     // ---------- Latest Medium posts, refreshed daily by .github/workflows/update-posts.yml ----------
